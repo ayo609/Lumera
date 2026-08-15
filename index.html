@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Premium Investment Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-cream: #faf7f2;
+      --bg-warm: #f5efe8;
+      --surface: #ffffff;
+      --brown-deep: #3e2723;
+      --brown-mid: #5d4037;
+      --brown-light: #8d6e63;
+      --brown-pale: #d7ccc8;
+      --brown-soft: #efebe9;
+      --accent-bronze: #cd7f32;
+      --accent-copper: #b87333;
+      --accent-gold: #daa520;
+      --text-dark: #2c1810;
+      --text-body: #5c4a3d;
+      --text-muted: #9e8b7d;
+      --success-green: #4caf50;
+      --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --border-medium: #d4c5b8;
+      --border-dark: #bcaaa4;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --shadow-large: 0 20px 60px rgba(62, 39, 35, 0.15);
+      --radius-small: 6px;
+      --radius-medium: 12px;
+      --radius-large: 20px;
+      --radius-xl: 28px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Manrope', system-ui, sans-serif;
+      background: var(--bg-cream);
+      min-height: 100vh;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Geometric Pattern Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(45deg, rgba(205, 127, 50, 0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(205, 127, 50, 0.03) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(205, 127, 50, 0.03) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(205, 127, 50, 0.03) 75%);
+      background-size: 60px 60px;
+      background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Main Container */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-width: 1000px;
+      width: 100%;
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-large);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      min-height: 600px;
+    }
+
+    /* Left Section - Hero */
+    .hero-section {
+      background: linear-gradient(135deg, var(--brown-deep) 0%, var(--brown-mid) 50%, var(--brown-light) 100%);
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(205, 127, 50, 0.3) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-section::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(218, 165, 32, 0.2) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent-bronze), var(--accent-gold));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(205, 127, 50, 0.4);
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border: 2px solid rgba(205, 127, 50, 0.3);
+      border-radius: 50%;
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.5; }
+    }
+
+    .logo-icon svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2px;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .brand-slogan {
+      font-size: 0.85rem;
+      color: var(--brown-pale);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-description {
+      font-size: 0.95rem;
+      color: var(--brown-pale);
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 350px;
+    }
+
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .feature-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent-gold);
+    }
+
+    .feature-text {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Right Section - Form */
+    .form-section {
+      background: var(--surface);
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .form-nav {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 30px;
+    }
+
+    .nav-link {
+      font-size: 0.85rem;
+      color: var(--brown-light);
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      padding: 8px 16px;
+      border-radius: var(--radius-small);
+    }
+
+    .nav-link:hover {
+      color: var(--brown-deep);
+      background: var(--brown-soft);
+    }
+
+    .nav-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .form-header {
+      margin-bottom: 30px;
+    }
+
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--brown-deep);
+      margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-body);
+    }
+
+    .referral-banner {
+      display: none;
+      background: linear-gradient(135deg, #fff8f0, #fff3e0);
+      border: 1px solid var(--accent-bronze);
+      border-radius: var(--radius-medium);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--brown-mid);
+      align-items: center;
+      gap: 10px;
+    }
+
+    .referral-banner.show {
+      display: flex;
+    }
+
+    .referral-banner-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--accent-bronze);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .referral-banner-icon svg {
+      width: 12px;
+      height: 12px;
+      color: white;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--brown-mid);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .input-group:focus-within .input-label {
+      color: var(--accent-bronze);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: var(--transition-smooth);
+      display: flex;
+    }
+
+    .input-group:focus-within .input-icon {
+      color: var(--accent-bronze);
+    }
+
+    .input-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 48px;
+      background: var(--bg-cream);
+      border: 1.5px solid var(--border-light);
+      border-radius: var(--radius-small);
+      padding: 0 14px 0 44px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control::placeholder {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-bronze);
+      box-shadow: 0 0 0 3px rgba(205, 127, 50, 0.1);
+      background: #ffffff;
+    }
+
+    .form-control.error {
+      border-color: var(--error-red);
+    }
+
+    .form-control.success {
+      border-color: var(--success-green);
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 6px;
+      display: flex;
+      transition: var(--transition-smooth);
+    }
+
+    .toggle-password:hover {
+      color: var(--accent-bronze);
+    }
+
+    .toggle-password svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .strength-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border-light);
+      border-radius: 2px;
+      transition: var(--transition-smooth);
+    }
+
+    .strength-bar.weak { background: var(--error-red); }
+    .strength-bar.medium { background: #ff9800; }
+    .strength-bar.strong { background: var(--success-green); }
+
+    .feedback-message {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      font-weight: 500;
+      display: none;
+    }
+
+    .feedback-message.valid {
+      color: var(--success-green);
+      display: block;
+    }
+
+    .feedback-message.invalid {
+      color: var(--error-red);
+      display: block;
+    }
+
+    .feedback-message.checking {
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .submit-button {
+      width: 100%;
+      height: 52px;
+      background: linear-gradient(135deg, var(--brown-deep) 0%, var(--brown-mid) 100%);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+      transition: var(--transition-smooth);
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .submit-button:hover::before {
+      left: 100%;
+    }
+
+    .submit-button:hover {
+      background: linear-gradient(135deg, var(--brown-mid) 0%, var(--brown-deep) 100%);
+      box-shadow: 0 8px 25px rgba(62, 39, 35, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .submit-button:active {
+      transform: translateY(0);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--text-body);
+    }
+
+    .form-footer a {
+      color: var(--accent-bronze);
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .form-footer a:hover {
+      color: var(--brown-deep);
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #ffffff;
+      border-radius: var(--radius-medium);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-medium);
+      transform: translateX(120%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: auto;
+      max-width: 380px;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-right: 4px solid var(--success-green);
+    }
+
+    .toast.error {
+      border-right: 4px solid var(--error-red);
+    }
+
+    .toast-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .toast.error .toast-icon {
+      background: rgba(229, 57, 53, 0.1);
+    }
+
+    .toast-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .toast.success .toast-icon svg {
+      color: var(--success-green);
+    }
+
+    .toast.error .toast-icon svg {
+      color: var(--error-red);
+    }
+
+    .toast-content h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+
+    .toast-content p {
+      font-size: 0.8rem;
+      color: var(--text-body);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+      }
+
+      .hero-section {
+        padding: 40px 30px;
+        min-height: auto;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .features-list {
+        display: none;
+      }
+
+      .form-section {
+        padding: 40px 30px;
+      }
+
+      .brand-name {
+        font-size: 2rem;
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+  <!-- Left Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <div class="logo-badge">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-name">Lumera</h1>
+          <p class="brand-slogan">Wealth Management</p>
+        </div>
+      </div>
+
+      <h2 class="hero-title">Grow Your Wealth With Confidence</h2>
+      <p class="hero-description">
+        Join thousands of investors who trust Lumera for secure, transparent, and profitable investment opportunities in USD.
+      </p>
+    </div>
+
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <span class="feature-text">Bank-Grade Security</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <span class="feature-text">Guaranteed USD Returns</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+            <path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <span class="feature-text">3-Tier Referral Rewards</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Form Section -->
+  <div class="form-section">
+    <div class="form-nav">
+      <a href="login.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Sign In
+      </a>
+    </div>
+
+    <div class="referral-banner" id="referralBanner">
+      <div class="referral-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <span>Referred by: <strong id="referralCodeDisplay">—</strong></span>
+    </div>
+
+    <div class="form-header">
+      <h2 class="form-title">Create Your Account</h2>
+      <p class="form-subtitle">Start your USD investment journey with Lumera today</p>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Referral Code (Optional)</label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <polyline points="17 11 19 13 23 9"/>
+          </svg>
+        </span>
+        <input type="text" class="form-control" id="referral" placeholder="Enter referral code" autocomplete="off" />
+      </div>
+      <div class="feedback-message" id="referralFeedback"></div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Email Address</label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M22 7l-10 7L2 7"/>
+          </svg>
+        </span>
+        <input type="email" class="form-control" id="email" placeholder="your@email.com" autocomplete="email" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Phone Number</label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2"/>
+            <line x1="12" y1="18" x2="12.01" y2="18"/>
+          </svg>
+        </span>
+        <input type="tel" class="form-control" id="phone" placeholder="+234 800 000 0000" autocomplete="tel" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </span>
+        <input type="password" class="form-control" id="password" placeholder="Minimum 6 characters" autocomplete="new-password" />
+        <button class="toggle-password" onclick="togglePasswordVisibility('password', this)" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+      <div class="password-strength">
+        <div class="strength-bar" id="strength1"></div>
+        <div class="strength-bar" id="strength2"></div>
+        <div class="strength-bar" id="strength3"></div>
+        <div class="strength-bar" id="strength4"></div>
+        <div class="strength-bar" id="strength5"></div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Confirm Password</label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </span>
+        <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password" />
+        <button class="toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button class="submit-button" id="registerButton" onclick="handleRegistration()">
+      <div class="button-spinner" id="buttonSpinner"></div>
+      <span id="buttonText">Create Account</span>
+    </button>
+
+    <p class="form-footer">
+      Already have an account?<a href="login.html">Sign In</a>
+    </p>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Toast notification function
+  function showToast(type, title, message, duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' 
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' 
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}
+      </div>
+      <div class="toast-content">
+        <h4>${title}</h4>
+        <p>${message}</p>
+      </div>
+    `;
+    container.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 500);
+    }, duration);
+  }
+
+  // Loading state management
+  function setLoading(loading) {
+    const button = document.getElementById('registerButton');
+    document.getElementById('buttonSpinner').style.display = loading ? 'block' : 'none';
+    document.getElementById('buttonText').textContent = loading ? 'Creating Account...' : 'Create Account';
+    button.disabled = loading;
+  }
+
+  // Field status management
+  function setFieldStatus(fieldId, status) {
+    const field = document.getElementById(fieldId);
+    field.classList.remove('error', 'success');
+    if (status) field.classList.add(status);
+  }
+
+  // Password strength indicator
+  function updatePasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 6) score++;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    for (let i = 1; i <= 5; i++) {
+      const bar = document.getElementById('strength' + i);
+      bar.classList.remove('weak', 'medium', 'strong');
+      if (i <= score) {
+        if (score <= 2) bar.classList.add('weak');
+        else if (score <= 3) bar.classList.add('medium');
+        else bar.classList.add('strong');
+      }
+    }
+  }
+
+  // Toggle password visibility
+  window.togglePasswordVisibility = function(fieldId, button) {
+    const input = document.getElementById(fieldId);
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    
+    button.innerHTML = isPassword
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+          <path d="M14.12 14.12a3 3 0 11-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>`;
+  };
+
+  // Get referral code from URL
+  function getReferralFromURL() {
+    return new URLSearchParams(window.location.search).get('ref') || null;
+  }
+
+  // Auto-fill referral code
+  function autoFillReferral(code) {
+    if (!code) return;
+    document.getElementById('referral').value = code.toUpperCase();
+    document.getElementById('referralCodeDisplay').textContent = code.toUpperCase();
+    document.getElementById('referralBanner').classList.add('show');
+    validateReferralCode();
+  }
+
+  // Validate referral code
+  let validationTimeout;
+  window.validateReferralCode = function() {
+    clearTimeout(validationTimeout);
+    const code = document.getElementById('referral').value.trim().toUpperCase();
+    const feedback = document.getElementById('referralFeedback');
+    
+    if (!code || code.length < 5) {
+      feedback.className = 'feedback-message';
+      feedback.textContent = '';
+      setFieldStatus('referral', null);
+      return;
+    }
+    
+    feedback.className = 'feedback-message checking';
+    feedback.textContent = 'Verifying referral code...';
+    setFieldStatus('referral', null);
+    
+    validationTimeout = setTimeout(async () => {
+      try {
+        const codeDoc = await getDoc(doc(db, 'referralCodes', code));
+        if (codeDoc.exists()) {
+          const userDoc = await getDoc(doc(db, 'users', codeDoc.data().uid));
+          if (userDoc.exists()) {
+            feedback.className = 'feedback-message valid';
+            feedback.textContent = '✓ Valid referral code - 10% bonus activated';
+            setFieldStatus('referral', 'success');
+            return;
+          }
+        }
+        feedback.className = 'feedback-message invalid';
+        feedback.textContent = '✗ Invalid referral code';
+        setFieldStatus('referral', 'error');
+      } catch {
+        feedback.className = 'feedback-message invalid';
+        feedback.textContent = 'Verification error';
+        setFieldStatus('referral', 'error');
+      }
+    }, 600);
+  };
+
+  // Get error message
+  function getErrorMessage(code) {
+    const errors = {
+      'auth/email-already-in-use': 'This email is already registered.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+      'auth/network-request-failed': 'Network error. Please check your connection.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+    };
+    return errors[code] || 'Registration failed. Please try again.';
+  }
+
+  // Handle registration
+  window.handleRegistration = async function() {
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const referralCode = document.getElementById('referral').value.trim().toUpperCase();
+
+    // Validation
+    if (!email) {
+      showToast('error', 'Missing Field', 'Please enter your email address.');
+      return;
+    }
+    if (!phone) {
+      showToast('error', 'Missing Field', 'Please enter your phone number.');
+      return;
+    }
+    if (!password || password.length < 6) {
+      showToast('error', 'Weak Password', 'Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showToast('error', 'Password Mismatch', 'Passwords do not match.');
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\s/g, '');
+    if (!/^(\+234|0)?[789]\d{9}$/.test(cleanPhone)) {
+      showToast('error', 'Invalid Phone', 'Please enter a valid Nigerian phone number.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+      
+      // Verify referral code if provided
+      let referredBy = null;
+      if (referralCode) {
+        const codeDoc = await getDoc(doc(db, 'referralCodes', referralCode));
+        if (codeDoc.exists()) {
+          const userDoc = await getDoc(doc(db, 'users', codeDoc.data().uid));
+          if (userDoc.exists() && codeDoc.data().uid !== uid) {
+            referredBy = codeDoc.data().uid;
+          }
+        }
+      }
+
+      // Generate referral code
+      const shortCode = uid.substring(0, 8).toUpperCase();
+
+      // Save user data with USD wallets
+      await setDoc(doc(db, 'users', uid), {
+        uid,
+        email,
+        phone: cleanPhone,
+        referredBy,
+        referralCode: shortCode,
+        depositWallet: 0.00,      // USD Deposit Wallet
+        withdrawalWallet: 0.00,   // USD Withdrawal Wallet
+        totalDeposits: 0.00,      // Total deposits in USD
+        totalWithdrawals: 0.00,   // Total withdrawals in USD
+        activeInvestments: 0.00,  // Active investments in USD
+        referralEarnings: 0.00,   // Referral earnings in USD
+        totalEarnings: 0.00,      // Total earnings in USD
+        currency: 'USD',          // Currency set to USD
+        createdAt: serverTimestamp(),
+        status: 'active',
+        referralLevels: {
+          level1: 0,  // 10% referral bonus
+          level2: 0,  // 5% referral bonus
+          level3: 0   // 2% referral bonus
+        }
+      });
+
+      // Save referral code
+      await setDoc(doc(db, 'referralCodes', shortCode), {
+        uid,
+        createdAt: serverTimestamp()
+      });
+
+      setLoading(false);
+      showToast('success', 'Welcome to Lumera! 🎉', 'USD account created successfully. Redirecting...');
+      
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 2000);
+
+    } catch (error) {
+      setLoading(false);
+      showToast('error', 'Registration Failed', getErrorMessage(error.code));
+    }
+  };
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    // Auto-fill referral from URL
+    const refCode = getReferralFromURL();
+    if (refCode) autoFillReferral(refCode);
+    
+    // Referral input validation
+    document.getElementById('referral').addEventListener('input', validateReferralCode);
+    
+    // Password strength
+    document.getElementById('password').addEventListener('input', (e) => {
+      updatePasswordStrength(e.target.value);
+    });
+    
+    // Enter key to submit
+    document.querySelectorAll('.form-control').forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleRegistration();
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
