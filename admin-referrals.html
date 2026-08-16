@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Admin Referrals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-dark: #1a1a2e; --bg-darker: #16213e; --surface: #1a1a40; --surface-light: #242450;
+      --gold: #e94560; --gold-light: #ff6b6b; --text-light: #ffffff; --text-muted: #a0a0b8;
+      --border-light: rgba(255,255,255,0.08); --success-green: #4caf50; --error-red: #ff4444;
+      --warning-orange: #ff9800; --info-blue: #2196f3;
+      --shadow-soft: 0 4px 20px rgba(0,0,0,0.2); --shadow-medium: 0 8px 40px rgba(0,0,0,0.4);
+      --radius-small: 8px; --radius-medium: 14px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-dark); min-height: 100vh; color: var(--text-light); overflow-x: hidden; }
+
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; background: var(--bg-darker); border-bottom: 1px solid var(--border-light); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .top-bar-left { display: flex; align-items: center; gap: 15px; }
+    .hamburger { background: var(--surface-light); border: none; width: 40px; height: 40px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--text-light); border-radius: 2px; }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+    .logout-btn { padding: 8px 15px; background: var(--error-red); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .logout-btn:hover { background: #cc0000; }
+    .logout-btn svg { width: 14px; height: 14px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 98; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--bg-darker); z-index: 99; transition: left 0.3s; border-right: 1px solid var(--border-light); display: flex; flex-direction: column; padding: 70px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 12px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 4px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 11px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(233,69,96,0.1); color: var(--gold); }
+    .sidebar-nav a svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .main-content { padding: 80px 20px 30px; max-width: 1400px; margin-left: auto; margin-right: auto; }
+    .page-header { margin-bottom: 25px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 700; color: var(--text-light); }
+    .page-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .stat-mini { background: var(--surface); border-radius: var(--radius-medium); padding: 18px; border: 1px solid var(--border-light); text-align: center; }
+    .stat-mini-value { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 700; }
+    .stat-mini-value.l1 { color: var(--success-green); }
+    .stat-mini-value.l2 { color: var(--info-blue); }
+    .stat-mini-value.l3 { color: var(--warning-orange); }
+    .stat-mini-value.total { color: var(--gold); }
+    .stat-mini-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* Referral Bonus Info */
+    .bonus-banner {
+      background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(233,69,96,0.1));
+      border: 1px solid var(--border-light); border-radius: var(--radius-medium);
+      padding: 15px 20px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center; gap: 30px; flex-wrap: wrap;
+    }
+    .bonus-item { text-align: center; }
+    .bonus-item-value { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+    .bonus-item-label { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Table */
+    .table-card { background: var(--surface); border-radius: var(--radius-large); border: 1px solid var(--border-light); overflow: hidden; }
+    .table-header { padding: 18px 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
+    .table-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 700; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th { padding: 12px 15px; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border-light); background: var(--bg-darker); }
+    td { padding: 12px 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border-light); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; margin-right: 8px; vertical-align: middle; }
+    .level-badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; }
+    .level-1 { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .level-2 { background: rgba(33,150,243,0.15); color: var(--info-blue); }
+    .level-3 { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .action-btns { display: flex; gap: 5px; }
+    .btn-sm { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: var(--transition-smooth); display: flex; align-items: center; gap: 3px; }
+    .btn-sm svg { width: 11px; height: 11px; }
+    .btn-view { background: rgba(33,150,243,0.15); color: var(--info-blue); }
+    .btn-view:hover { background: rgba(33,150,243,0.3); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-large); padding: 25px; max-width: 450px; width: 100%; border: 1px solid var(--border-light); animation: modalIn 0.3s; text-align: center; max-height: 80vh; overflow-y: auto; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-icon { width: 55px; height: 55px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .modal-icon.warning { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .modal-icon.info { background: rgba(33,150,243,0.15); color: var(--info-blue); }
+    .modal-icon svg { width: 26px; height: 26px; }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+    .modal-message { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; }
+    .modal-details { background: var(--bg-darker); border-radius: var(--radius-small); padding: 12px; margin-bottom: 15px; text-align: left; }
+    .modal-detail-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 0.8rem; border-bottom: 1px solid var(--border-light); }
+    .modal-detail-row:last-child { border-bottom: none; }
+    .modal-detail-label { color: var(--text-muted); }
+    .modal-detail-value { font-weight: 700; color: var(--text-light); word-break: break-all; }
+    .modal-buttons { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 11px; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; transition: var(--transition-smooth); }
+    .modal-btn.cancel { background: var(--surface-light); color: var(--text-muted); }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 70px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--surface); border-radius: var(--radius-medium); padding: 14px 18px; box-shadow: var(--shadow-medium); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.5s; max-width: 340px; border-left: 4px solid var(--gold); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .toast-icon svg { width: 16px; height: 16px; }
+    .toast-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.75rem; color: var(--text-muted); }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+    .empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--border-light); }
+
+    @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .bonus-banner { gap: 15px; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon info" id="modalIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+    <h3 class="modal-title" id="modalTitle">Details</h3>
+    <p class="modal-message" id="modalMessage"></p>
+    <div class="modal-details" id="modalDetails" style="display:none;"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div class="top-bar-title">Lumera Admin</div>
+  </div>
+  <button class="logout-btn" onclick="showLogoutConfirm()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </button>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="admin-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a></li>
+    <li><a href="admin-users.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</a></li>
+    <li><a href="admin-deposits.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Deposits</a></li>
+    <li><a href="admin-withdrawals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12h14"/></svg>Withdrawals</a></li>
+    <li><a href="admin-investments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Investments</a></li>
+    <li><a href="admin-plans.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Plans</a></li>
+    <li><a href="admin-referrals.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Referrals</a></li>
+    <li><a href="admin-transactions.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Transactions</a></li>
+    <li><a href="admin-alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a></li>
+    <li><a href="admin-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a></li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Referral Management</h1>
+    <p class="page-subtitle">Monitor referral relationships and bonuses</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-mini"><div class="stat-mini-value l1" id="level1Count">0</div><div class="stat-mini-label">Level 1</div></div>
+    <div class="stat-mini"><div class="stat-mini-value l2" id="level2Count">0</div><div class="stat-mini-label">Level 2</div></div>
+    <div class="stat-mini"><div class="stat-mini-value l3" id="level3Count">0</div><div class="stat-mini-label">Level 3</div></div>
+    <div class="stat-mini"><div class="stat-mini-value total" id="totalBonuses">$0</div><div class="stat-mini-label">Total Bonuses Paid</div></div>
+  </div>
+
+  <!-- Bonus Structure Banner -->
+  <div class="bonus-banner">
+    <div class="bonus-item"><div class="bonus-item-value">10%</div><div class="bonus-item-label">Level 1 Bonus</div></div>
+    <div class="bonus-item"><div class="bonus-item-value">5%</div><div class="bonus-item-label">Level 2 Bonus</div></div>
+    <div class="bonus-item"><div class="bonus-item-value">2%</div><div class="bonus-item-label">Level 3 Bonus</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">Referral Bonus Records</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Referrer</th>
+            <th>Downline</th>
+            <th>Level</th>
+            <th>Bonus Amount</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="referralsTable">
+          <tr><td colspan="6"><div class="empty-state">Loading referrals...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allReferrals = [];
+
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}</div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  function showInfoModal(title, details) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = '';
+    document.getElementById('modalDetails').style.display = 'block';
+    document.getElementById('modalDetails').innerHTML = details;
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('show'); };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  window.showLogoutConfirm = function() {
+    showInfoModal('Logout', '<div style="text-align:center;color:var(--text-muted);padding:10px;">Click the logout button in the top bar to sign out.</div>');
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+
+  // ===== VIEW REFERRAL DETAILS =====
+  window.viewReferral = function(id) {
+    const ref = allReferrals.find(r => r.id === id);
+    if (!ref) return;
+    
+    const details = `
+      <div class="modal-detail-row"><span class="modal-detail-label">Referrer</span><span class="modal-detail-value">${ref.referrerEmail || 'N/A'}</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Downline</span><span class="modal-detail-value">${ref.downlineEmail || 'N/A'}</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Level</span><span class="modal-detail-value">Level ${ref.level}</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Percentage</span><span class="modal-detail-value">${ref.percentage}%</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Bonus Amount</span><span class="modal-detail-value">$${ref.amount.toFixed(2)}</span></div>
+      <div class="modal-detail-row"><span class="modal-detail-label">Date</span><span class="modal-detail-value">${ref.date}</span></div>
+    `;
+    
+    showInfoModal('Referral Bonus Details', details);
+  };
+
+  // ===== RENDER REFERRALS =====
+  function renderReferrals() {
+    const tbody = document.getElementById('referralsTable');
+    
+    let level1Count = 0, level2Count = 0, level3Count = 0, totalBonuses = 0;
+    
+    allReferrals.forEach(ref => {
+      if (ref.level === 1) level1Count++;
+      else if (ref.level === 2) level2Count++;
+      else if (ref.level === 3) level3Count++;
+      totalBonuses += ref.amount || 0;
+    });
+    
+    document.getElementById('level1Count').textContent = level1Count;
+    document.getElementById('level2Count').textContent = level2Count;
+    document.getElementById('level3Count').textContent = level3Count;
+    document.getElementById('totalBonuses').textContent = `$${totalBonuses.toFixed(2)}`;
+    
+    if (allReferrals.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No referral bonuses recorded yet</p></div></td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = allReferrals.map(ref => `
+      <tr>
+        <td><span class="user-avatar">${(ref.referrerEmail || 'U').charAt(0).toUpperCase()}</span>${ref.referrerEmail || 'N/A'}</td>
+        <td><span class="user-avatar">${(ref.downlineEmail || 'D').charAt(0).toUpperCase()}</span>${ref.downlineEmail || 'N/A'}</td>
+        <td><span class="level-badge level-${ref.level}">Level ${ref.level}</span></td>
+        <td style="font-family:'DM Mono',monospace;">$${ref.amount.toFixed(2)}</td>
+        <td>${ref.date}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm btn-view" onclick="viewReferral('${ref.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> View</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ===== LOAD REFERRALS =====
+  async function loadReferrals() {
+    try {
+      const snapshot = await getDocs(collection(db, 'referralBonuses'));
+      allReferrals = [];
+      
+      for (const docSnap of snapshot.docs) {
+        const r = docSnap.data();
+        
+        // Get emails
+        let referrerEmail = r.referrerUid;
+        let downlineEmail = r.downlineUid;
+        
+        try {
+          const referrerDoc = await getDoc(doc(db, 'users', r.referrerUid));
+          if (referrerDoc.exists()) referrerEmail = referrerDoc.data().email || r.referrerUid;
+        } catch (e) {}
+        
+        try {
+          const downlineDoc = await getDoc(doc(db, 'users', r.downlineUid));
+          if (downlineDoc.exists()) downlineEmail = downlineDoc.data().email || r.downlineUid;
+        } catch (e) {}
+        
+        allReferrals.push({
+          id: docSnap.id,
+          ...r,
+          referrerEmail,
+          downlineEmail,
+          date: r.createdAt ? new Date(r.createdAt.toMillis ? r.createdAt.toMillis() : r.createdAt).toLocaleDateString() : 'N/A'
+        });
+      }
+      
+      allReferrals.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() || 0;
+        const bTime = b.createdAt?.toMillis?.() || 0;
+        return bTime - aTime;
+      });
+      
+      renderReferrals();
+    } catch (error) {
+      console.error('Error loading referrals:', error);
+      document.getElementById('referralsTable').innerHTML = '<tr><td colspan="6"><div class="empty-state">Error loading referrals. Collection may not exist yet.</div></td></tr>';
+    }
+  }
+
+  // ===== AUTH CHECK =====
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists() && userDoc.data().isAdmin === true) {
+        loadReferrals();
+      } else {
+        window.location.href = 'admin-login.html';
+      }
+    } else {
+      window.location.href = 'admin-login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
