@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Invest</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-cream: #faf7f2;
+      --surface: #ffffff;
+      --brown-deep: #3e2723;
+      --brown-mid: #5d4037;
+      --brown-light: #8d6e63;
+      --brown-pale: #d7ccc8;
+      --accent-bronze: #cd7f32;
+      --accent-gold: #daa520;
+      --text-dark: #2c1810;
+      --text-body: #5c4a3d;
+      --text-muted: #9e8b7d;
+      --success-green: #4caf50;
+      --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --radius-small: 6px;
+      --radius-medium: 12px;
+      --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Manrope', system-ui, sans-serif;
+      background: var(--bg-cream);
+      min-height: 100vh;
+      color: var(--text-dark);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Hamburger */
+    .hamburger {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--brown-deep);
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 2px;
+    }
+
+    /* Sidebar */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--surface);
+      z-index: 999;
+      transition: left 0.3s;
+      box-shadow: var(--shadow-large);
+      display: flex;
+      flex-direction: column;
+      padding: 80px 0 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar.show {
+      left: 0;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      padding: 0 15px;
+      flex: 1;
+    }
+
+    .sidebar-nav li {
+      margin-bottom: 5px;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      color: var(--text-body);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-small);
+      transition: var(--transition-smooth);
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: var(--brown-soft);
+      color: var(--brown-deep);
+    }
+
+    .sidebar-nav a svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 80px 20px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--brown-deep);
+      margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-body);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      background: var(--surface);
+      border-radius: var(--radius-medium);
+      padding: 5px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-small);
+      background: transparent;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn.active {
+      background: var(--brown-deep);
+      color: #ffffff;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: var(--brown-soft);
+      color: var(--brown-deep);
+    }
+
+    /* Plans Grid */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border-radius: var(--radius-medium);
+      padding: 25px 20px;
+      text-align: center;
+      box-shadow: var(--shadow-soft);
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+    }
+
+    .plan-card:hover {
+      box-shadow: var(--shadow-medium);
+      transform: translateY(-3px);
+      border-color: var(--accent-bronze);
+    }
+
+    .plan-card.selected {
+      border-color: var(--accent-bronze);
+      background: #fff8f0;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, var(--accent-bronze), var(--accent-gold));
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
+      letter-spacing: 0.5px;
+    }
+
+    .plan-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--brown-deep);
+      margin-bottom: 5px;
+    }
+
+    .plan-roi {
+      font-size: 0.85rem;
+      color: var(--accent-bronze);
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .plan-duration {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+    }
+
+    .plan-total {
+      font-size: 0.8rem;
+      color: var(--success-green);
+      font-weight: 700;
+      background: #f0f9f0;
+      border-radius: 20px;
+      padding: 5px 10px;
+      display: inline-block;
+    }
+
+    /* Purchase Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-large);
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: var(--shadow-large);
+      animation: modalIn 0.3s;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--brown-deep);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal-details {
+      background: var(--bg-cream);
+      border-radius: var(--radius-small);
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    .detail-value {
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .confirm-btn {
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(135deg, var(--brown-deep) 0%, var(--brown-mid) 100%);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .confirm-btn:hover {
+      box-shadow: 0 8px 25px rgba(62, 39, 35, 0.3);
+    }
+
+    .confirm-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .cancel-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-small);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 10px;
+      transition: var(--transition-smooth);
+    }
+
+    .cancel-btn:hover {
+      background: var(--brown-soft);
+    }
+
+    .button-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* My Investments */
+    .investments-list {
+      display: none;
+    }
+
+    .investments-list.show {
+      display: block;
+    }
+
+    .investment-card {
+      background: var(--surface);
+      border-radius: var(--radius-medium);
+      padding: 20px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 15px;
+    }
+
+    .investment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .investment-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--brown-deep);
+    }
+
+    .investment-status {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-active {
+      background: #f0f9f0;
+      color: var(--success-green);
+    }
+
+    .status-completed {
+      background: #f0f0f0;
+      color: var(--text-muted);
+    }
+
+    .countdown-timer {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-bronze);
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-bronze), var(--accent-gold));
+      border-radius: 3px;
+      transition: width 1s linear;
+    }
+
+    .investment-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #ffffff;
+      border-radius: var(--radius-medium);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-medium);
+      transform: translateX(120%);
+      transition: transform 0.5s;
+      pointer-events: auto;
+      max-width: 350px;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-right: 4px solid var(--success-green);
+    }
+
+    .toast.error {
+      border-right: 4px solid var(--error-red);
+    }
+
+    .toast-icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon {
+      background: rgba(76, 175, 80, 0.1);
+      color: var(--success-green);
+    }
+
+    .toast.error .toast-icon {
+      background: rgba(229, 57, 53, 0.1);
+      color: var(--error-red);
+    }
+
+    .toast-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .toast-content h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .toast-content p {
+      font-size: 0.8rem;
+      color: var(--text-body);
+    }
+
+    @media (max-width: 768px) {
+      .plans-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .plans-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger" onclick="toggleSidebar()">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Home</a></li>
+    <li><a href="invest.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Invest</a></li>
+    <li><a href="deposit-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Deposit Wallet</a></li>
+    <li><a href="withdrawal-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="15" x2="22" y2="15"/></svg> Withdrawal Wallet</a></li>
+    <li><a href="referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Referrals</a></li>
+    <li><a href="history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</a></li>
+    <li><a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Profile</a></li>
+    <li><a href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Alerts</a></li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  
+  <div class="page-header">
+    <h1 class="page-title">Investment Plans</h1>
+    <p class="page-subtitle">Choose a plan and start earning daily returns</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="plansTab" onclick="switchTab('plans')">Available Plans</button>
+    <button class="tab-btn" id="investmentsTab" onclick="switchTab('investments')">My Ventures</button>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="plans-grid" id="plansGrid">
+    <!-- Plans will be loaded here -->
+  </div>
+
+  <!-- My Investments -->
+  <div class="investments-list" id="investmentsList">
+    <!-- Investments will be loaded here -->
+  </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 class="modal-title">Confirm Purchase</h3>
+    <div class="modal-details" id="modalDetails">
+      <!-- Details will be loaded here -->
+    </div>
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmPurchase()">
+      <div class="button-spinner" id="spinner"></div>
+      <span id="confirmText">Confirm Purchase</span>
+    </button>
+    <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let selectedPlan = null;
+
+  // ===== PLANS DATA =====
+  const plans = [
+    { amount: 10, dailyRoi: 1, duration: 20, totalReturn: 20 },
+    { amount: 20, dailyRoi: 2, duration: 20, totalReturn: 40 },
+    { amount: 50, dailyRoi: 5, duration: 20, totalReturn: 100 },
+    { amount: 100, dailyRoi: 10, duration: 20, totalReturn: 200 },
+    { amount: 200, dailyRoi: 20, duration: 20, totalReturn: 400 },
+    { amount: 300, dailyRoi: 30, duration: 20, totalReturn: 600 },
+    { amount: 500, dailyRoi: 50, duration: 20, totalReturn: 1000 },
+    { amount: 1000, dailyRoi: 100, duration: 20, totalReturn: 2000 },
+    { amount: 2000, dailyRoi: 200, duration: 20, totalReturn: 4000 }
+  ];
+
+  // ===== SIDEBAR =====
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  // ===== TOAST =====
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' 
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' 
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}
+      </div>
+      <div class="toast-content">
+        <h4>${title}</h4>
+        <p>${message}</p>
+      </div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
+  }
+
+  // ===== SWITCH TAB =====
+  window.switchTab = function(tab) {
+    if (tab === 'plans') {
+      document.getElementById('plansTab').classList.add('active');
+      document.getElementById('investmentsTab').classList.remove('active');
+      document.getElementById('plansGrid').style.display = 'grid';
+      document.getElementById('investmentsList').classList.remove('show');
+    } else {
+      document.getElementById('investmentsTab').classList.add('active');
+      document.getElementById('plansTab').classList.remove('active');
+      document.getElementById('plansGrid').style.display = 'none';
+      document.getElementById('investmentsList').classList.add('show');
+      loadMyInvestments();
+    }
+  };
+
+  // ===== LOAD PLANS =====
+  function loadPlans() {
+    const grid = document.getElementById('plansGrid');
+    grid.innerHTML = '';
+    
+    plans.forEach(plan => {
+      const card = document.createElement('div');
+      card.className = 'plan-card';
+      card.innerHTML = `
+        <div class="plan-badge">20 DAYS</div>
+        <div class="plan-amount">$${plan.amount}</div>
+        <div class="plan-roi">$${plan.dailyRoi}/day</div>
+        <div class="plan-duration">${plan.duration} days contract</div>
+        <div class="plan-total">100% Return: $${plan.totalReturn}</div>
+      `;
+      card.onclick = () => openPurchaseModal(plan);
+      grid.appendChild(card);
+    });
+  }
+
+  // ===== OPEN PURCHASE MODAL =====
+  window.openPurchaseModal = function(plan) {
+    selectedPlan = plan;
+    
+    const details = document.getElementById('modalDetails');
+    details.innerHTML = `
+      <div class="detail-row">
+        <span class="detail-label">Investment Amount</span>
+        <span class="detail-value">$${plan.amount}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Daily ROI</span>
+        <span class="detail-value">$${plan.dailyRoi}/day</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Duration</span>
+        <span class="detail-value">${plan.duration} days</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Total Return</span>
+        <span class="detail-value" style="color: var(--success-green);">$${plan.totalReturn}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">ROI Drops</span>
+        <span class="detail-value">Every 24 hours</span>
+      </div>
+    `;
+    
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    selectedPlan = null;
+  };
+
+  // ===== CONFIRM PURCHASE =====
+  window.confirmPurchase = async function() {
+    if (!selectedPlan || !currentUser) return;
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    const spinner = document.getElementById('spinner');
+    const confirmText = document.getElementById('confirmText');
+
+    confirmBtn.disabled = true;
+    spinner.style.display = 'block';
+    confirmText.textContent = 'Processing...';
+
+    try {
+      // Get user data
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
+
+      const userData = userDoc.data();
+      const depositWallet = userData.depositWallet || 0;
+
+      // Check if user has enough balance
+      if (depositWallet < selectedPlan.amount) {
+        throw new Error('Insufficient deposit wallet balance');
+      }
+
+      // Deduct from deposit wallet
+      const newDepositWallet = depositWallet - selectedPlan.amount;
+
+      // Create investment record
+      const investmentId = Date.now().toString();
+      const investmentData = {
+        id: investmentId,
+        uid: currentUser.uid,
+        planAmount: selectedPlan.amount,
+        dailyRoi: selectedPlan.dailyRoi,
+        duration: selectedPlan.duration,
+        totalReturn: selectedPlan.totalReturn,
+        startTime: Date.now(),
+        lastRoiTime: Date.now(),
+        roiCount: 0,
+        totalRoiEarned: 0,
+        status: 'active',
+        createdAt: serverTimestamp()
+      };
+
+      // Update user deposit wallet
+      await updateDoc(userRef, {
+        depositWallet: newDepositWallet
+      });
+
+      // Save investment
+      await setDoc(doc(db, 'investments', investmentId), investmentData);
+
+      // Handle referral bonus if user was referred
+      if (userData.referredBy) {
+        await handleReferralBonus(userData.referredBy, currentUser.uid, selectedPlan.amount);
+      }
+
+      spinner.style.display = 'none';
+      confirmBtn.disabled = false;
+      confirmText.textContent = 'Confirm Purchase';
+      closeModal();
+
+      showToast('success', 'Investment Purchased!', `$${selectedPlan.amount} plan activated. ROI starts in 24 hours.`);
+
+    } catch (error) {
+      spinner.style.display = 'none';
+      confirmBtn.disabled = false;
+      confirmText.textContent = 'Confirm Purchase';
+      showToast('error', 'Purchase Failed', error.message || 'Please try again.');
+    }
+  };
+
+  // ===== HANDLE REFERRAL BONUS =====
+  async function handleReferralBonus(referrerUid, newUserUid, amount) {
+    try {
+      // Get referrer data
+      const referrerRef = doc(db, 'users', referrerUid);
+      const referrerDoc = await getDoc(referrerRef);
+
+      if (!referrerDoc.exists()) return;
+
+      const referrerData = referrerDoc.data();
+
+      // Check if this is the downline's first purchase
+      const downlineRef = doc(db, 'users', newUserUid);
+      const downlineDoc = await getDoc(downlineRef);
+      
+      if (!downlineDoc.exists()) return;
+
+      const downlineData = downlineDoc.data();
+      const isFirstPurchase = !downlineData.hasPurchased;
+
+      if (isFirstPurchase) {
+        // Calculate Level 1 bonus (10%)
+        const level1Bonus = amount * 0.10;
+
+        // Update referrer's withdrawal wallet
+        const newWithdrawalWallet = (referrerData.withdrawalWallet || 0) + level1Bonus;
+        const newReferralEarnings = (referrerData.referralEarnings || 0) + level1Bonus;
+
+        await updateDoc(referrerRef, {
+          withdrawalWallet: newWithdrawalWallet,
+          referralEarnings: newReferralEarnings
+        });
+
+        // Mark downline as having purchased
+        await updateDoc(downlineRef, {
+          hasPurchased: true
+        });
+
+        // Save referral bonus record
+        const bonusId = Date.now().toString();
+        await setDoc(doc(db, 'referralBonuses', bonusId), {
+          referrerUid: referrerUid,
+          downlineUid: newUserUid,
+          amount: level1Bonus,
+          level: 1,
+          percentage: 10,
+          createdAt: serverTimestamp()
+        });
+
+        showToast('success', 'Referral Bonus!', `Your upliner has been credited with $${level1Bonus.toFixed(2)} (10% bonus).`);
+      }
+    } catch (error) {
+      console.error('Error handling referral bonus:', error);
+    }
+  };
+
+  // ===== LOAD MY INVESTMENTS =====
+  async function loadMyInvestments() {
+    if (!currentUser) return;
+
+    const list = document.getElementById('investmentsList');
+    list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">Loading your ventures...</p>';
+
+    try {
+      // This would be replaced with actual Firestore query
+      // For now, showing empty state
+      list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px;">No active ventures yet. Start investing today!</p>';
+    } catch (error) {
+      list.innerHTML = '<p style="text-align:center;color:var(--error-red);padding:20px;">Error loading investments.</p>';
+    }
+  }
+
+  // ===== AUTH STATE =====
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadPlans();
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
