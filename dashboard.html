@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-cream: #faf7f2; --surface: #ffffff;
+      --brown-deep: #3e2723; --brown-mid: #5d4037;
+      --brown-light: #8d6e63; --brown-pale: #d7ccc8; --brown-soft: #f5f0eb;
+      --accent-bronze: #cd7f32; --accent-gold: #daa520;
+      --text-dark: #2c1810; --text-body: #5c4a3d; --text-muted: #9e8b7d;
+      --success-green: #4caf50; --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --shadow-large: 0 12px 60px rgba(62, 39, 35, 0.15);
+      --radius-small: 6px; --radius-medium: 12px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-cream); min-height: 100vh; color: var(--text-dark); position: relative; overflow-x: hidden; }
+
+    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1000; background: var(--brown-deep); border: none; width: 45px; height: 45px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: var(--transition-smooth); box-shadow: var(--shadow-medium); }
+    .hamburger:hover { background: var(--brown-mid); transform: scale(1.05); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: var(--transition-smooth); }
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--surface); z-index: 999; transition: left 0.3s; box-shadow: var(--shadow-large); display: flex; flex-direction: column; padding: 80px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 15px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 5px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: var(--text-body); text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--brown-soft); color: var(--brown-deep); }
+    .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .sidebar-logout { margin: 20px 15px 0; padding: 12px 15px; background: var(--error-red); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .sidebar-logout:hover { background: #c62828; }
+    .sidebar-logout svg { width: 18px; height: 18px; }
+
+    .main-content { margin-left: 0; padding: 80px 20px 20px; transition: margin-left 0.3s; }
+
+    .welcome-banner { background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); border-radius: var(--radius-large); padding: 25px 30px; margin-bottom: 20px; color: #fff; position: relative; overflow: hidden; box-shadow: var(--shadow-medium); max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .welcome-banner::before { content: ''; position: absolute; top: -30%; right: -10%; width: 300px; height: 300px; background: rgba(218,165,32,0.08); border-radius: 50%; }
+    .welcome-content { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+    .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-bronze), var(--accent-gold)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #fff; border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+    .welcome-text { flex: 1; }
+    .welcome-greeting { font-size: 0.8rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 4px; }
+    .welcome-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .welcome-email { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+
+    .image-slider { position: relative; width: 100%; max-width: 1200px; margin: 0 auto 20px; border-radius: var(--radius-large); overflow: hidden; box-shadow: var(--shadow-medium); height: 200px; background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); }
+    .slider-container { display: flex; width: 100%; height: 100%; position: relative; }
+    .slider-image { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.5s; }
+    .slider-image.active { opacity: 1; }
+    .slider-fallback { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #fff; text-align: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+    .slider-fallback.show { opacity: 1; }
+    .slider-fallback h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+    .slider-fallback p { font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+    .slider-dots { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+    .slider-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: var(--transition-smooth); border: none; }
+    .slider-dot.active { background: var(--accent-gold); width: 20px; border-radius: 4px; }
+
+    .coins-ticker { background: var(--surface); border-radius: var(--radius-large); box-shadow: var(--shadow-soft); padding: 15px; margin-bottom: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .ticker-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .ticker-title svg { width: 20px; height: 20px; color: var(--accent-bronze); }
+    .coins-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; }
+    .coin-item { background: var(--bg-cream); border: 1px solid var(--border-light); border-radius: var(--radius-small); padding: 12px 8px; text-align: center; transition: var(--transition-smooth); cursor: pointer; }
+    .coin-item:hover { border-color: var(--accent-bronze); box-shadow: 0 4px 12px rgba(205,127,50,0.15); transform: translateY(-2px); }
+    .coin-symbol { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 4px; }
+    .coin-price { font-size: 0.75rem; color: var(--text-body); font-weight: 600; }
+    .coin-change { font-size: 0.7rem; font-weight: 700; margin-top: 2px; }
+    .coin-change.positive { color: var(--success-green); }
+    .coin-change.negative { color: var(--error-red); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 1200px; margin: 0 auto 20px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius-medium); padding: 20px; box-shadow: var(--shadow-soft); position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: linear-gradient(180deg, var(--accent-bronze), var(--accent-gold)); }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
+    .stat-value { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--brown-deep); }
+
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .dashboard-card { background: var(--surface); border-radius: var(--radius-large); padding: 25px; box-shadow: var(--shadow-soft); }
+    .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .card-title svg { width: 20px; height: 20px; color: var(--accent-bronze); }
+    .action-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+    .action-btn { padding: 15px; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition-smooth); }
+    .action-btn svg { width: 16px; height: 16px; }
+    .btn-deposit { background: var(--brown-deep); color: #fff; }
+    .btn-deposit:hover { background: var(--brown-mid); box-shadow: 0 4px 15px rgba(62,39,35,0.3); }
+    .btn-invest { background: linear-gradient(135deg, var(--accent-bronze), var(--accent-gold)); color: #fff; }
+    .btn-invest:hover { box-shadow: 0 4px 15px rgba(205,127,50,0.4); transform: translateY(-2px); }
+    .btn-withdraw { background: var(--brown-light); color: #fff; }
+    .btn-withdraw:hover { background: var(--brown-mid); box-shadow: 0 4px 15px rgba(62,39,35,0.3); }
+    .btn-refer { background: var(--success-green); color: #fff; }
+    .btn-refer:hover { background: #388e3c; box-shadow: 0 4px 15px rgba(76,175,80,0.3); }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { background: var(--surface); border-radius: var(--radius-medium); padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-large); transform: translateX(120%); transition: transform 0.5s; pointer-events: auto; max-width: 380px; border-left: 4px solid var(--accent-bronze); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast.info { border-left-color: var(--accent-bronze); }
+    .toast-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(229,57,53,0.1); color: var(--error-red); }
+    .toast.info .toast-icon { background: rgba(205,127,50,0.1); color: var(--accent-bronze); }
+    .toast-icon svg { width: 20px; height: 20px; }
+    .toast-content { flex: 1; }
+    .toast-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-message { font-size: 0.8rem; color: var(--text-body); }
+    .toast-close { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted); }
+    .toast-close svg { width: 14px; height: 14px; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1500; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-large); padding: 30px; max-width: 400px; width: 100%; box-shadow: var(--shadow-large); animation: modalIn 0.3s; text-align: center; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-icon { width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .modal-icon.warning { background: rgba(205,127,50,0.1); color: var(--accent-bronze); }
+    .modal-icon svg { width: 28px; height: 28px; }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 10px; }
+    .modal-message { font-size: 0.9rem; color: var(--text-body); margin-bottom: 20px; }
+    .modal-buttons { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 12px; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 700; transition: var(--transition-smooth); }
+    .modal-btn.confirm { background: var(--brown-deep); color: #fff; }
+    .modal-btn.confirm:hover { background: var(--brown-mid); }
+    .modal-btn.cancel { background: var(--brown-soft); color: var(--text-body); }
+    .modal-btn.cancel:hover { background: var(--brown-pale); }
+
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .coins-grid { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } .coins-grid { grid-template-columns: repeat(3, 1fr); } .stats-grid { grid-template-columns: 1fr; } .image-slider { height: 150px; } .main-content { padding: 70px 10px 10px; } .welcome-content { flex-direction: column; text-align: center; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h3 class="modal-title" id="modalTitle">Confirm</h3>
+    <p class="modal-message" id="modalMessage">Are you sure?</p>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="confirmModalAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a></li>
+    <li><a href="invest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Invest</a></li>
+    <li><a href="deposit-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Deposit Wallet</a></li>
+    <li><a href="withdrawal-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="15" x2="22" y2="15"/></svg>Withdrawal Wallet</a></li>
+    <li><a href="referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Referrals</a></li>
+    <li><a href="history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</a></li>
+    <li><a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</a></li>
+    <li><a href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a></li>
+  </ul>
+  <button class="sidebar-logout" onclick="showLogoutConfirm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out</button>
+</div>
+
+<div class="main-content">
+  <div class="welcome-banner">
+    <div class="welcome-content">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div class="welcome-text">
+        <div class="welcome-greeting" id="welcomeGreeting">Good Morning</div>
+        <div class="welcome-name" id="welcomeName">Welcome!</div>
+        <div class="welcome-email" id="welcomeEmail">user@lumera.com</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="image-slider">
+    <div class="slider-container">
+      <img src="lum1.jpg" class="slider-image active" alt="Slide 1" onerror="handleImageError(this,0)" />
+      <img src="lum2.jpg" class="slider-image" alt="Slide 2" onerror="handleImageError(this,1)" />
+      <div class="slider-fallback" id="sliderFallback"><h3>Lumera</h3><p>Premium Investment Platform</p></div>
+    </div>
+    <div class="slider-dots">
+      <button class="slider-dot active" onclick="changeSlide(0)"></button>
+      <button class="slider-dot" onclick="changeSlide(1)"></button>
+    </div>
+  </div>
+
+  <div class="coins-ticker">
+    <div class="ticker-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Live Market</div>
+    <div class="coins-grid" id="coinsGrid"></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Deposit Wallet</div><div class="stat-value" id="depositWallet">$0.00</div></div>
+    <div class="stat-card"><div class="stat-label">Withdrawal Wallet</div><div class="stat-value" id="withdrawalWallet">$0.00</div></div>
+    <div class="stat-card"><div class="stat-label">Active Investments</div><div class="stat-value" id="activeInvestments">$0.00</div></div>
+    <div class="stat-card"><div class="stat-label">Referral Earnings</div><div class="stat-value" id="referralEarnings">$0.00</div></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="dashboard-card">
+      <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Quick Actions</div>
+      <div class="action-buttons">
+        <button class="action-btn btn-deposit" onclick="navigateTo('deposit-wallet.html','Add Money')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Money</button>
+        <button class="action-btn btn-invest" onclick="navigateTo('invest.html','Invest Now')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Invest Now</button>
+        <button class="action-btn btn-withdraw" onclick="navigateTo('withdrawal-wallet.html','Withdraw')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12h14"/></svg>Withdraw</button>
+        <button class="action-btn btn-refer" onclick="navigateTo('referrals.html','Share Referral')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Share Referral</button>
+      </div>
+    </div>
+    <div class="dashboard-card">
+      <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Recent Activity</div>
+      <div id="recentActivity"><p style="text-align:center;color:var(--text-muted);padding:30px 0;">No recent activity</p></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let modalAction = null;
+
+  function showToast(type, title, message, duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : type === 'error' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'}</div>
+      <div class="toast-content"><h4 class="toast-title">${title}</h4><p class="toast-message">${message}</p></div>
+      <button class="toast-close" onclick="this.parentElement.remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, duration);
+  }
+
+  function showModal(title, message, action) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    modalAction = action;
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+  window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('show'); modalAction = null; };
+  window.confirmModalAction = function() { if (modalAction) modalAction(); closeModal(); };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+    document.getElementById('hamburgerBtn').classList.toggle('active');
+  };
+
+  window.navigateTo = function(page, actionName) {
+    showModal(`Navigate to ${actionName}`, `Are you sure you want to go to the ${actionName} page?`, () => {
+      showToast('info', 'Navigating...', `Taking you to ${actionName}.`);
+      setTimeout(() => { window.location.href = page; }, 800);
+    });
+  };
+
+  window.showLogoutConfirm = function() {
+    showModal('Sign Out', 'Are you sure you want to sign out?', async () => {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+  };
+
+  let currentSlide = 0;
+  window.changeSlide = function(index) {
+    currentSlide = index;
+    document.querySelectorAll('.slider-image').forEach((s, i) => s.classList.toggle('active', i === index));
+    document.querySelectorAll('.slider-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+  };
+  setInterval(() => { currentSlide = currentSlide === 0 ? 1 : 0; changeSlide(currentSlide); }, 5000);
+
+  function handleImageError(img, index) {
+    img.style.display = 'none';
+    document.getElementById('sliderFallback').classList.add('show');
+  }
+
+  // ===== COINS WITH FALLBACK =====
+  const coinsList = [
+    { symbol: 'BTC', id: 'bitcoin', fallbackPrice: 64230.50, fallbackChange: 2.34 },
+    { symbol: 'ETH', id: 'ethereum', fallbackPrice: 3450.80, fallbackChange: 1.87 },
+    { symbol: 'BNB', id: 'binancecoin', fallbackPrice: 585.40, fallbackChange: -0.65 },
+    { symbol: 'SOL', id: 'solana', fallbackPrice: 148.20, fallbackChange: -1.12 },
+    { symbol: 'XRP', id: 'ripple', fallbackPrice: 0.62, fallbackChange: 3.21 },
+    { symbol: 'ADA', id: 'cardano', fallbackPrice: 0.45, fallbackChange: -2.10 },
+    { symbol: 'DOGE', id: 'dogecoin', fallbackPrice: 0.12, fallbackChange: 5.67 },
+    { symbol: 'AVAX', id: 'avalanche-2', fallbackPrice: 28.90, fallbackChange: 0.89 },
+    { symbol: 'MATIC', id: 'matic-network', fallbackPrice: 0.58, fallbackChange: -1.45 },
+    { symbol: 'TON', id: 'the-open-network', fallbackPrice: 6.85, fallbackChange: 0.45 }
+  ];
+
+  function loadCoins() {
+    const grid = document.getElementById('coinsGrid');
+    grid.innerHTML = '';
+    coinsList.forEach(coin => {
+      const el = document.createElement('div');
+      el.className = 'coin-item';
+      el.innerHTML = `<div class="coin-symbol">${coin.symbol}</div><div class="coin-price">$${coin.fallbackPrice.toFixed(2)}</div><div class="coin-change ${coin.fallbackChange >= 0 ? 'positive' : 'negative'}">${coin.fallbackChange >= 0 ? '+' : ''}${coin.fallbackChange.toFixed(2)}%</div>`;
+      grid.appendChild(el);
+    });
+  }
+
+  // ===== ROI CREDIT SYSTEM =====
+  async function processRoiCredits() {
+    if (!currentUser) return;
+    try {
+      const investmentsRef = collection(db, 'investments');
+      const q = query(investmentsRef, where('uid', '==', currentUser.uid), where('status', '==', 'active'));
+      const snapshot = await getDocs(q);
+      
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) return;
+      const userData = userDoc.data();
+      
+      let totalCredited = 0;
+      const now = Date.now();
+      
+      for (const invDoc of snapshot.docs) {
+        const inv = invDoc.data();
+        const lastRoi = inv.lastRoiTime || inv.startTime;
+        const nextRoiTime = lastRoi + 24 * 60 * 60 * 1000;
+        
+        if (now >= nextRoiTime && inv.roiCount < inv.duration) {
+          const roiAmount = inv.dailyRoi;
+          totalCredited += roiAmount;
+          
+          const newRoiCount = (inv.roiCount || 0) + 1;
+          const newTotalEarned = (inv.totalRoiEarned || 0) + roiAmount;
+          const isCompleted = newRoiCount >= inv.duration;
+          
+          await updateDoc(doc(db, 'investments', inv.id), {
+            roiCount: newRoiCount,
+            totalRoiEarned: newTotalEarned,
+            lastRoiTime: now,
+            status: isCompleted ? 'completed' : 'active'
+          });
+        }
+      }
+      
+      if (totalCredited > 0) {
+        await updateDoc(userRef, {
+          withdrawalWallet: (userData.withdrawalWallet || 0) + totalCredited,
+          totalEarnings: (userData.totalEarnings || 0) + totalCredited
+        });
+        showToast('success', 'ROI Credited! 🎉', `$${totalCredited.toFixed(2)} has been added to your withdrawal wallet.`);
+        loadUserData();
+      }
+    } catch (error) {
+      console.error('ROI processing error:', error);
+    }
+  }
+
+  // ===== LOAD USER DATA =====
+  async function loadUserData() {
+    if (!currentUser) return;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const email = data.email || currentUser.email;
+        document.getElementById('userAvatar').textContent = email.charAt(0).toUpperCase();
+        document.getElementById('welcomeEmail').textContent = email;
+        document.getElementById('welcomeName').textContent = `Welcome, ${email.split('@')[0]}!`;
+        document.getElementById('depositWallet').textContent = `$${(data.depositWallet || 0).toFixed(2)}`;
+        document.getElementById('withdrawalWallet').textContent = `$${(data.withdrawalWallet || 0).toFixed(2)}`;
+        document.getElementById('activeInvestments').textContent = `$${(data.activeInvestments || 0).toFixed(2)}`;
+        document.getElementById('referralEarnings').textContent = `$${(data.referralEarnings || 0).toFixed(2)}`;
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }
+
+  // ===== AUTH STATE =====
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadCoins();
+      loadUserData();
+      processRoiCredits();
+      setInterval(processRoiCredits, 60000); // Check every minute
+      
+      const hour = new Date().getHours();
+      let greeting = 'Good Evening';
+      if (hour < 12) greeting = 'Good Morning';
+      else if (hour < 17) greeting = 'Good Afternoon';
+      document.getElementById('welcomeGreeting').textContent = greeting;
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+</body>
+</html>
