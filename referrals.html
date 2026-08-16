@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Referrals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-cream: #faf7f2;
+      --surface: #ffffff;
+      --brown-deep: #3e2723;
+      --brown-mid: #5d4037;
+      --brown-light: #8d6e63;
+      --brown-pale: #d7ccc8;
+      --brown-soft: #f5f0eb;
+      --accent-bronze: #cd7f32;
+      --accent-gold: #daa520;
+      --text-dark: #2c1810;
+      --text-body: #5c4a3d;
+      --text-muted: #9e8b7d;
+      --success-green: #4caf50;
+      --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --radius-small: 6px;
+      --radius-medium: 12px;
+      --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Manrope', system-ui, sans-serif;
+      background: var(--bg-cream);
+      min-height: 100vh;
+      color: var(--text-dark);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Hamburger */
+    .hamburger {
+      position: fixed; top: 20px; left: 20px; z-index: 1000;
+      background: var(--brown-deep); border: none;
+      width: 45px; height: 45px; border-radius: var(--radius-small);
+      cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 5px;
+      box-shadow: var(--shadow-medium);
+    }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+
+    /* Sidebar */
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 998;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar {
+      position: fixed; top: 0; left: -280px; width: 280px; height: 100vh;
+      background: var(--surface); z-index: 999;
+      transition: left 0.3s; box-shadow: var(--shadow-large);
+      display: flex; flex-direction: column; padding: 80px 0 20px; overflow-y: auto;
+    }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 15px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 5px; }
+    .sidebar-nav a {
+      display: flex; align-items: center; gap: 12px; padding: 12px 15px;
+      color: var(--text-body); text-decoration: none;
+      font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-small);
+      transition: var(--transition-smooth);
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--brown-soft); color: var(--brown-deep); }
+    .sidebar-nav a svg { width: 18px; height: 18px; }
+    .sidebar-logout {
+      margin: 20px 15px 0; padding: 12px 15px;
+      background: var(--error-red); color: #fff; border: none;
+      border-radius: var(--radius-small); cursor: pointer;
+      font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logout svg { width: 18px; height: 18px; }
+
+    /* Main Content */
+    .main-content { padding: 80px 20px 40px; max-width: 900px; margin: 0 auto; }
+
+    .page-header { text-align: center; margin-bottom: 25px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--brown-deep); }
+    .page-subtitle { font-size: 0.9rem; color: var(--text-body); }
+
+    /* Referral Link Card */
+    .referral-link-card {
+      background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid));
+      border-radius: var(--radius-large);
+      padding: 25px;
+      margin-bottom: 20px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .referral-link-card::before {
+      content: ''; position: absolute; top: -50%; right: -30%;
+      width: 200px; height: 200px;
+      background: rgba(218,165,32,0.1); border-radius: 50%;
+    }
+    .referral-link-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; color: var(--accent-gold); }
+    .referral-link-box {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.1); border-radius: var(--radius-small);
+      padding: 12px;
+      position: relative; z-index: 1;
+    }
+    .referral-link-text {
+      flex: 1; font-family: 'DM Mono', monospace; font-size: 0.8rem;
+      color: rgba(255,255,255,0.9); word-break: break-all;
+    }
+    .copy-btn {
+      background: var(--accent-bronze); color: #fff; border: none;
+      border-radius: var(--radius-small); padding: 10px 15px;
+      cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700;
+      display: flex; align-items: center; gap: 5px; white-space: nowrap;
+    }
+    .copy-btn:hover { background: var(--accent-gold); }
+    .copy-btn svg { width: 14px; height: 14px; }
+
+    /* Referral Bonus Info */
+    .bonus-info {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-top: 15px; position: relative; z-index: 1;
+    }
+    .bonus-level {
+      text-align: center; padding: 12px;
+      background: rgba(255,255,255,0.1); border-radius: var(--radius-small);
+    }
+    .bonus-percent { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--accent-gold); }
+    .bonus-label { font-size: 0.7rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Stats */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: var(--surface); border-radius: var(--radius-medium);
+      padding: 18px; text-align: center; box-shadow: var(--shadow-soft);
+    }
+    .stat-box-value { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--brown-deep); }
+    .stat-box-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 5px; margin-bottom: 20px;
+      background: var(--surface); border-radius: var(--radius-medium);
+      padding: 5px; box-shadow: var(--shadow-soft);
+    }
+    .tab-btn {
+      flex: 1; padding: 10px; border: none; border-radius: var(--radius-small);
+      background: transparent; cursor: pointer; font-family: inherit;
+      font-size: 0.8rem; font-weight: 700; color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+    .tab-btn.active { background: var(--brown-deep); color: #fff; }
+    .tab-btn:hover:not(.active) { background: var(--brown-soft); }
+
+    /* Downline List */
+    .downline-list { display: flex; flex-direction: column; gap: 12px; }
+    .downline-card {
+      background: var(--surface); border-radius: var(--radius-medium);
+      padding: 18px; box-shadow: var(--shadow-soft);
+      border-left: 3px solid var(--accent-bronze);
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+    .downline-card:hover { box-shadow: var(--shadow-medium); transform: translateX(3px); }
+
+    .downline-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .downline-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--brown-soft); display: flex; align-items: center;
+      justify-content: center; font-weight: 700; color: var(--brown-deep);
+      flex-shrink: 0;
+    }
+    .downline-info { flex: 1; min-width: 0; }
+    .downline-email { font-size: 0.85rem; font-weight: 700; color: var(--text-dark); word-break: break-all; }
+    .downline-date { font-size: 0.7rem; color: var(--text-muted); }
+    .downline-level-badge {
+      font-size: 0.65rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .level-1 { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .level-2 { background: rgba(205,127,50,0.1); color: var(--accent-bronze); }
+    .level-3 { background: rgba(93,64,55,0.1); color: var(--brown-mid); }
+
+    .downline-details {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      padding-top: 10px; border-top: 1px solid var(--border-light);
+    }
+    .detail-item { text-align: center; }
+    .detail-value { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); }
+    .detail-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+
+    /* Modal for Downline Details */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6); z-index: 1500;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface); border-radius: var(--radius-large);
+      padding: 25px; max-width: 450px; width: 100%;
+      box-shadow: var(--shadow-large); animation: modalIn 0.3s;
+      max-height: 80vh; overflow-y: auto;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+      font-weight: 700; color: var(--brown-deep); margin-bottom: 15px;
+      text-align: center;
+    }
+    .modal-detail-row {
+      display: flex; justify-content: space-between; padding: 10px 0;
+      border-bottom: 1px solid var(--border-light); font-size: 0.85rem;
+    }
+    .modal-detail-row:last-child { border-bottom: none; }
+    .modal-detail-label { color: var(--text-muted); }
+    .modal-detail-value { font-weight: 700; color: var(--text-dark); }
+    .modal-close-btn {
+      width: 100%; padding: 12px; margin-top: 15px;
+      background: var(--brown-deep); color: #fff; border: none;
+      border-radius: var(--radius-small); cursor: pointer;
+      font-family: inherit; font-size: 0.9rem; font-weight: 700;
+    }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      background: var(--surface); border-radius: var(--radius-medium);
+      padding: 14px 18px; box-shadow: var(--shadow-large);
+      display: flex; align-items: center; gap: 12px;
+      transform: translateX(120%); transition: transform 0.5s;
+      max-width: 350px; border-left: 4px solid var(--accent-bronze);
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(229,57,53,0.1); color: var(--error-red); }
+    .toast-icon svg { width: 18px; height: 18px; }
+    .toast-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.75rem; color: var(--text-body); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--brown-pale); }
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: 5px; color: var(--text-body); }
+    .empty-state p { font-size: 0.8rem; }
+
+    @media (max-width: 768px) {
+      .bonus-info, .stats-row { grid-template-columns: repeat(3, 1fr); }
+      .main-content { padding: 70px 12px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Hamburger -->
+<button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Home</a></li>
+    <li><a href="invest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Invest</a></li>
+    <li><a href="deposit-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Deposit Wallet</a></li>
+    <li><a href="withdrawal-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="15" x2="22" y2="15"/></svg>Withdrawal Wallet</a></li>
+    <li><a href="referrals.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Referrals</a></li>
+    <li><a href="history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</a></li>
+    <li><a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</a></li>
+    <li><a href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a></li>
+  </ul>
+  <button class="sidebar-logout" onclick="logout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Sign Out
+  </button>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Referral Network</h1>
+    <p class="page-subtitle">Share your link and earn from 3 levels of referrals</p>
+  </div>
+
+  <!-- Referral Link -->
+  <div class="referral-link-card">
+    <div class="referral-link-title">Your Referral Link</div>
+    <div class="referral-link-box">
+      <span class="referral-link-text" id="referralLink">Loading...</span>
+      <button class="copy-btn" onclick="copyReferralLink()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="bonus-info">
+      <div class="bonus-level"><div class="bonus-percent">10%</div><div class="bonus-label">Level 1</div></div>
+      <div class="bonus-level"><div class="bonus-percent">5%</div><div class="bonus-label">Level 2</div></div>
+      <div class="bonus-level"><div class="bonus-percent">2%</div><div class="bonus-label">Level 3</div></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-value" id="totalDownlines">0</div><div class="stat-box-label">Total Referrals</div></div>
+    <div class="stat-box"><div class="stat-box-value" id="activeDownlines">0</div><div class="stat-box-label">Active Investors</div></div>
+    <div class="stat-box"><div class="stat-box-value" id="totalEarned">$0.00</div><div class="stat-box-label">Total Earned</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabL1" onclick="switchTab(1)">Level 1</button>
+    <button class="tab-btn" id="tabL2" onclick="switchTab(2)">Level 2</button>
+    <button class="tab-btn" id="tabL3" onclick="switchTab(3)">Level 3</button>
+  </div>
+
+  <!-- Downline List -->
+  <div class="downline-list" id="downlineList">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <h3>No Referrals Yet</h3>
+      <p>Share your referral link to start earning!</p>
+    </div>
+  </div>
+</div>
+
+<!-- Downline Details Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 class="modal-title">Downline Details</h3>
+    <div id="modalContent"></div>
+    <button class="modal-close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentTab = 1;
+  let allDownlines = { level1: [], level2: [], level3: [] };
+
+  // ===== SIDEBAR =====
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  // ===== TOAST =====
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}
+      </div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  // ===== COPY REFERRAL LINK =====
+  window.copyReferralLink = function() {
+    const link = document.getElementById('referralLink').textContent;
+    navigator.clipboard.writeText(link).then(() => {
+      showToast('success', 'Link Copied!', 'Referral link copied to clipboard.');
+    });
+  };
+
+  // ===== SWITCH TAB =====
+  window.switchTab = function(level) {
+    currentTab = level;
+    document.getElementById('tabL1').classList.toggle('active', level === 1);
+    document.getElementById('tabL2').classList.toggle('active', level === 2);
+    document.getElementById('tabL3').classList.toggle('active', level === 3);
+    renderDownlines();
+  };
+
+  // ===== RENDER DOWNLINES =====
+  function renderDownlines() {
+    const list = document.getElementById('downlineList');
+    const downlines = allDownlines[`level${currentTab}`];
+    
+    if (!downlines || downlines.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <h3>No Level ${currentTab} Referrals</h3>
+          <p>Share your link to grow your network!</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = downlines.map(d => `
+      <div class="downline-card" onclick="showDownlineDetails('${d.uid}')">
+        <div class="downline-header">
+          <div class="downline-avatar">${d.email.charAt(0).toUpperCase()}</div>
+          <div class="downline-info">
+            <div class="downline-email">${d.email}</div>
+            <div class="downline-date">Joined: ${d.joinedDate || 'N/A'}</div>
+          </div>
+          <span class="downline-level-badge level-${currentTab}">L${currentTab}</span>
+        </div>
+        <div class="downline-details">
+          <div class="detail-item"><div class="detail-value">$${(d.totalInvested || 0).toFixed(2)}</div><div class="detail-label">Invested</div></div>
+          <div class="detail-item"><div class="detail-value">${d.activePlans || 0}</div><div class="detail-label">Active Plans</div></div>
+          <div class="detail-item"><div class="detail-value">$${(d.bonusEarned || 0).toFixed(2)}</div><div class="detail-label">Your Bonus</div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== SHOW DOWNLINE DETAILS =====
+  window.showDownlineDetails = async function(uid) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (!userDoc.exists()) return;
+      const data = userDoc.data();
+      
+      // Get their investments
+      const investmentsRef = collection(db, 'investments');
+      const investmentsQuery = query(investmentsRef, where('uid', '==', uid));
+      const investmentsSnapshot = await getDocs(investmentsQuery);
+      const investments = investmentsSnapshot.docs.map(doc => doc.data());
+      const activeInvestments = investments.filter(inv => inv.status === 'active');
+      const totalInvested = investments.reduce((sum, inv) => sum + (inv.planAmount || 0), 0);
+
+      const modalContent = document.getElementById('modalContent');
+      modalContent.innerHTML = `
+        <div class="modal-detail-row"><span class="modal-detail-label">Email</span><span class="modal-detail-value">${data.email || 'N/A'}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Phone</span><span class="modal-detail-value">${data.phone || 'N/A'}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Referral Code</span><span class="modal-detail-value">${data.referralCode || 'N/A'}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Deposit Wallet</span><span class="modal-detail-value">$${(data.depositWallet || 0).toFixed(2)}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Withdrawal Wallet</span><span class="modal-detail-value">$${(data.withdrawalWallet || 0).toFixed(2)}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Total Invested</span><span class="modal-detail-value">$${totalInvested.toFixed(2)}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Active Investments</span><span class="modal-detail-value">${activeInvestments.length}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Total Plans Purchased</span><span class="modal-detail-value">${investments.length}</span></div>
+        <div class="modal-detail-row"><span class="modal-detail-label">Status</span><span class="modal-detail-value">${data.status || 'active'}</span></div>
+      `;
+      
+      document.getElementById('modalOverlay').classList.add('show');
+    } catch (error) {
+      showToast('error', 'Error', 'Failed to load downline details.');
+    }
+  };
+
+  // ===== CLOSE MODAL =====
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  };
+
+  // ===== LOAD REFERRAL DATA =====
+  async function loadReferralData() {
+    if (!currentUser) return;
+    
+    try {
+      // Get user data
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (!userDoc.exists()) return;
+      const userData = userDoc.data();
+      
+      // Set referral link
+      const refCode = userData.referralCode || currentUser.uid.substring(0, 8).toUpperCase();
+      const baseUrl = window.location.origin;
+      document.getElementById('referralLink').textContent = `${baseUrl}/index.html?ref=${refCode}`;
+      
+      // Get Level 1 downlines (direct referrals)
+      const usersRef = collection(db, 'users');
+      const level1Query = query(usersRef, where('referredBy', '==', currentUser.uid));
+      const level1Snapshot = await getDocs(level1Query);
+      
+      const level1Users = [];
+      for (const docSnap of level1Snapshot.docs) {
+        const d = docSnap.data();
+        level1Users.push({
+          uid: d.uid,
+          email: d.email,
+          joinedDate: d.createdAt ? new Date(d.createdAt.toMillis()).toLocaleDateString() : 'N/A',
+          totalInvested: d.totalDeposits || 0,
+          activePlans: d.activeInvestments || 0,
+          bonusEarned: 0
+        });
+      }
+      allDownlines.level1 = level1Users;
+      
+      // Get Level 2 downlines (referrals of Level 1)
+      const level2Users = [];
+      for (const l1 of level1Users) {
+        const l2Query = query(usersRef, where('referredBy', '==', l1.uid));
+        const l2Snapshot = await getDocs(l2Query);
+        for (const docSnap of l2Snapshot.docs) {
+          const d = docSnap.data();
+          level2Users.push({
+            uid: d.uid,
+            email: d.email,
+            joinedDate: d.createdAt ? new Date(d.createdAt.toMillis()).toLocaleDateString() : 'N/A',
+            totalInvested: d.totalDeposits || 0,
+            activePlans: d.activeInvestments || 0,
+            bonusEarned: 0
+          });
+        }
+      }
+      allDownlines.level2 = level2Users;
+      
+      // Get Level 3 downlines (referrals of Level 2)
+      const level3Users = [];
+      for (const l2 of level2Users) {
+        const l3Query = query(usersRef, where('referredBy', '==', l2.uid));
+        const l3Snapshot = await getDocs(l3Query);
+        for (const docSnap of l3Snapshot.docs) {
+          const d = docSnap.data();
+          level3Users.push({
+            uid: d.uid,
+            email: d.email,
+            joinedDate: d.createdAt ? new Date(d.createdAt.toMillis()).toLocaleDateString() : 'N/A',
+            totalInvested: d.totalDeposits || 0,
+            activePlans: d.activeInvestments || 0,
+            bonusEarned: 0
+          });
+        }
+      }
+      allDownlines.level3 = level3Users;
+      
+      // Update stats
+      const total = level1Users.length + level2Users.length + level3Users.length;
+      document.getElementById('totalDownlines').textContent = total;
+      document.getElementById('activeDownlines').textContent = 
+        [...level1Users, ...level2Users, ...level3Users].filter(u => u.activePlans > 0).length;
+      document.getElementById('totalEarned').textContent = `$${(userData.referralEarnings || 0).toFixed(2)}`;
+      
+      // Render current tab
+      renderDownlines();
+      
+    } catch (error) {
+      console.error('Error loading referrals:', error);
+      showToast('error', 'Error', 'Failed to load referral data.');
+    }
+  }
+
+  // ===== LOGOUT =====
+  window.logout = function() {
+    if (confirm('Sign out?')) {
+      signOut(auth).then(() => window.location.href = 'login.html');
+    }
+  };
+
+  // ===== AUTH STATE =====
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadReferralData();
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
