@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Admin Plans</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-dark: #1a1a2e; --bg-darker: #16213e; --surface: #1a1a40; --surface-light: #242450;
+      --gold: #e94560; --gold-light: #ff6b6b; --text-light: #ffffff; --text-muted: #a0a0b8;
+      --border-light: rgba(255,255,255,0.08); --success-green: #4caf50; --error-red: #ff4444;
+      --warning-orange: #ff9800; --info-blue: #2196f3;
+      --shadow-soft: 0 4px 20px rgba(0,0,0,0.2); --shadow-medium: 0 8px 40px rgba(0,0,0,0.4);
+      --radius-small: 8px; --radius-medium: 14px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-dark); min-height: 100vh; color: var(--text-light); overflow-x: hidden; }
+
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; background: var(--bg-darker); border-bottom: 1px solid var(--border-light); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .top-bar-left { display: flex; align-items: center; gap: 15px; }
+    .hamburger { background: var(--surface-light); border: none; width: 40px; height: 40px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--text-light); border-radius: 2px; }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+    .logout-btn { padding: 8px 15px; background: var(--error-red); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .logout-btn:hover { background: #cc0000; }
+    .logout-btn svg { width: 14px; height: 14px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 98; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--bg-darker); z-index: 99; transition: left 0.3s; border-right: 1px solid var(--border-light); display: flex; flex-direction: column; padding: 70px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 12px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 4px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 11px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(233,69,96,0.1); color: var(--gold); }
+    .sidebar-nav a svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .main-content { padding: 80px 20px 30px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .page-header { margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 700; color: var(--text-light); }
+    .page-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+    .add-plan-btn { padding: 12px 20px; background: var(--gold); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: var(--transition-smooth); }
+    .add-plan-btn:hover { background: var(--gold-light); box-shadow: 0 4px 15px rgba(233,69,96,0.4); }
+    .add-plan-btn svg { width: 16px; height: 16px; }
+
+    /* Plans Grid */
+    .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .plan-card { background: var(--surface); border-radius: var(--radius-medium); padding: 25px 20px; border: 1px solid var(--border-light); text-align: center; position: relative; overflow: hidden; transition: var(--transition-smooth); }
+    .plan-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-medium); border-color: var(--gold); }
+    .plan-card.active-plan { border-color: var(--success-green); }
+    .plan-card.inactive { opacity: 0.5; }
+    .plan-badge { position: absolute; top: 15px; right: 15px; font-size: 0.6rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; }
+    .badge-active { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .badge-inactive { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .plan-amount { font-family: 'DM Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--gold); margin-bottom: 5px; }
+    .plan-roi { font-size: 0.85rem; color: var(--text-light); font-weight: 700; margin-bottom: 3px; }
+    .plan-duration { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; }
+    .plan-return { font-size: 0.75rem; color: var(--success-green); font-weight: 700; background: rgba(76,175,80,0.1); border-radius: 20px; padding: 4px 10px; display: inline-block; margin-bottom: 15px; }
+    .plan-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn-sm { padding: 7px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: 700; transition: var(--transition-smooth); display: flex; align-items: center; gap: 4px; }
+    .btn-sm svg { width: 12px; height: 12px; }
+    .btn-edit { background: rgba(33,150,243,0.15); color: var(--info-blue); }
+    .btn-edit:hover { background: rgba(33,150,243,0.3); }
+    .btn-toggle { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .btn-toggle:hover { background: rgba(255,152,0,0.3); }
+    .btn-delete { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .btn-delete:hover { background: rgba(255,68,68,0.3); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-large); padding: 25px; max-width: 450px; width: 100%; border: 1px solid var(--border-light); animation: modalIn 0.3s; text-align: center; max-height: 80vh; overflow-y: auto; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-icon { width: 55px; height: 55px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .modal-icon.warning { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .modal-icon.danger { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .modal-icon.success { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .modal-icon svg { width: 26px; height: 26px; }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+    .modal-message { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; }
+    .modal-buttons { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 11px; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; transition: var(--transition-smooth); }
+    .modal-btn.confirm { background: var(--error-red); color: #fff; }
+    .modal-btn.success-confirm { background: var(--success-green); color: #fff; }
+    .modal-btn.warning-confirm { background: var(--warning-orange); color: #fff; }
+    .modal-btn.cancel { background: var(--surface-light); color: var(--text-muted); }
+
+    /* Form Inputs */
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-input { width: 100%; height: 42px; background: var(--bg-dark); border: 1px solid var(--border-light); border-radius: var(--radius-small); padding: 0 12px; font-family: inherit; font-size: 0.85rem; color: var(--text-light); outline: none; transition: var(--transition-smooth); }
+    .form-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(233,69,96,0.15); }
+    .form-input::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 70px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--surface); border-radius: var(--radius-medium); padding: 14px 18px; box-shadow: var(--shadow-medium); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.5s; max-width: 340px; border-left: 4px solid var(--gold); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .toast-icon svg { width: 16px; height: 16px; }
+    .toast-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.75rem; color: var(--text-muted); }
+
+    @media (max-width: 1024px) { .plans-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .plans-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon warning" id="modalIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h3 class="modal-title" id="modalTitle">Confirm</h3>
+    <p class="modal-message" id="modalMessage">Are you sure?</p>
+    <div id="modalForm" style="display:none;"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="modalConfirmBtn" onclick="confirmModalAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div class="top-bar-title">Lumera Admin</div>
+  </div>
+  <button class="logout-btn" onclick="showLogoutConfirm()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </button>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="admin-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a></li>
+    <li><a href="admin-users.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</a></li>
+    <li><a href="admin-deposits.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Deposits</a></li>
+    <li><a href="admin-withdrawals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12h14"/></svg>Withdrawals</a></li>
+    <li><a href="admin-investments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Investments</a></li>
+    <li><a href="admin-plans.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Plans</a></li>
+    <li><a href="admin-referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Referrals</a></li>
+    <li><a href="admin-transactions.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Transactions</a></li>
+    <li><a href="admin-alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a></li>
+    <li><a href="admin-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a></li>
+  </ul>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Plan Management</h1>
+      <p class="page-subtitle">Manage investment plans and packages</p>
+    </div>
+    <button class="add-plan-btn" onclick="showAddPlanModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add New Plan
+    </button>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="plans-grid" id="plansGrid">
+    <!-- Plans will be loaded here -->
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let modalAction = null;
+  let allPlans = [];
+  let editingPlanId = null;
+
+  // Default plans if collection is empty
+  const defaultPlans = [
+    { id: 'plan_10', amount: 10, dailyRoi: 1, duration: 20, totalReturn: 20, active: true },
+    { id: 'plan_20', amount: 20, dailyRoi: 2, duration: 20, totalReturn: 40, active: true },
+    { id: 'plan_50', amount: 50, dailyRoi: 5, duration: 20, totalReturn: 100, active: true },
+    { id: 'plan_100', amount: 100, dailyRoi: 10, duration: 20, totalReturn: 200, active: true },
+    { id: 'plan_200', amount: 200, dailyRoi: 20, duration: 20, totalReturn: 400, active: true },
+    { id: 'plan_300', amount: 300, dailyRoi: 30, duration: 20, totalReturn: 600, active: true },
+    { id: 'plan_500', amount: 500, dailyRoi: 50, duration: 20, totalReturn: 1000, active: true },
+    { id: 'plan_1000', amount: 1000, dailyRoi: 100, duration: 20, totalReturn: 2000, active: true },
+    { id: 'plan_2000', amount: 2000, dailyRoi: 200, duration: 20, totalReturn: 4000, active: true }
+  ];
+
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}</div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  function showModal(title, message, action, type) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    modalAction = action;
+    const icon = document.getElementById('modalIcon');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    const formEl = document.getElementById('modalForm');
+    formEl.style.display = 'none';
+    confirmBtn.style.display = 'block';
+    
+    const types = {
+      danger: { iconClass: 'danger', btnClass: 'confirm', iconSvg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' },
+      success: { iconClass: 'success', btnClass: 'success-confirm', iconSvg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' },
+      warning: { iconClass: 'warning', btnClass: 'warning-confirm', iconSvg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' }
+    };
+    
+    const t = types[type] || types.warning;
+    icon.className = `modal-icon ${t.iconClass}`;
+    icon.innerHTML = t.iconSvg;
+    confirmBtn.className = `modal-btn ${t.btnClass}`;
+    
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('show'); modalAction = null; editingPlanId = null; };
+  window.confirmModalAction = function() { if (modalAction) modalAction(); closeModal(); };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  window.showLogoutConfirm = function() {
+    showModal('Logout', 'Are you sure you want to log out?', async () => {
+      await signOut(auth);
+      window.location.href = 'admin-login.html';
+    }, 'warning');
+  };
+
+  // ===== ADD PLAN MODAL =====
+  window.showAddPlanModal = function() {
+    document.getElementById('modalTitle').textContent = 'Add New Plan';
+    document.getElementById('modalMessage').textContent = 'Enter the plan details below.';
+    document.getElementById('modalIcon').className = 'modal-icon success';
+    document.getElementById('modalIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+    document.getElementById('modalConfirmBtn').className = 'modal-btn success-confirm';
+    document.getElementById('modalConfirmBtn').textContent = 'Add Plan';
+    
+    const formEl = document.getElementById('modalForm');
+    formEl.style.display = 'block';
+    formEl.innerHTML = `
+      <div class="form-group"><label class="form-label">Plan Amount ($)</label><input type="number" class="form-input" id="planAmount" placeholder="e.g. 100" min="1" /></div>
+      <div class="form-group"><label class="form-label">Daily ROI ($)</label><input type="number" class="form-input" id="planRoi" placeholder="e.g. 10" min="0.01" step="0.01" /></div>
+      <div class="form-group"><label class="form-label">Duration (Days)</label><input type="number" class="form-input" id="planDuration" placeholder="e.g. 20" min="1" /></div>
+    `;
+    
+    modalAction = saveNewPlan;
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+
+  // ===== SAVE NEW PLAN =====
+  async function saveNewPlan() {
+    const amount = parseFloat(document.getElementById('planAmount').value);
+    const dailyRoi = parseFloat(document.getElementById('planRoi').value);
+    const duration = parseInt(document.getElementById('planDuration').value);
+    
+    if (!amount || !dailyRoi || !duration) {
+      showToast('error', 'Invalid Input', 'Please fill all fields correctly.');
+      return;
+    }
+    
+    const totalReturn = amount + (dailyRoi * duration);
+    const planId = 'plan_' + Date.now();
+    
+    try {
+      await setDoc(doc(db, 'plans', planId), {
+        id: planId,
+        amount,
+        dailyRoi,
+        duration,
+        totalReturn,
+        active: true,
+        createdAt: new Date().toISOString()
+      });
+      showToast('success', 'Plan Added', `$${amount} plan has been created.`);
+      loadPlans();
+    } catch (error) {
+      showToast('error', 'Error', 'Failed to add plan.');
+    }
+  }
+
+  // ===== EDIT PLAN MODAL =====
+  window.showEditPlanModal = function(planId) {
+    const plan = allPlans.find(p => p.id === planId);
+    if (!plan) return;
+    editingPlanId = planId;
+    
+    document.getElementById('modalTitle').textContent = 'Edit Plan';
+    document.getElementById('modalMessage').textContent = 'Update the plan details.';
+    document.getElementById('modalIcon').className = 'modal-icon warning';
+    document.getElementById('modalIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    document.getElementById('modalConfirmBtn').className = 'modal-btn warning-confirm';
+    document.getElementById('modalConfirmBtn').textContent = 'Update Plan';
+    
+    const formEl = document.getElementById('modalForm');
+    formEl.style.display = 'block';
+    formEl.innerHTML = `
+      <div class="form-group"><label class="form-label">Plan Amount ($)</label><input type="number" class="form-input" id="planAmount" value="${plan.amount}" min="1" /></div>
+      <div class="form-group"><label class="form-label">Daily ROI ($)</label><input type="number" class="form-input" id="planRoi" value="${plan.dailyRoi}" min="0.01" step="0.01" /></div>
+      <div class="form-group"><label class="form-label">Duration (Days)</label><input type="number" class="form-input" id="planDuration" value="${plan.duration}" min="1" /></div>
+    `;
+    
+    modalAction = saveEditedPlan;
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+
+  // ===== SAVE EDITED PLAN =====
+  async function saveEditedPlan() {
+    const amount = parseFloat(document.getElementById('planAmount').value);
+    const dailyRoi = parseFloat(document.getElementById('planRoi').value);
+    const duration = parseInt(document.getElementById('planDuration').value);
+    
+    if (!amount || !dailyRoi || !duration) {
+      showToast('error', 'Invalid Input', 'Please fill all fields correctly.');
+      return;
+    }
+    
+    try {
+      await updateDoc(doc(db, 'plans', editingPlanId), {
+        amount, dailyRoi, duration,
+        totalReturn: amount + (dailyRoi * duration)
+      });
+      showToast('success', 'Plan Updated', 'Plan details have been updated.');
+      loadPlans();
+    } catch (error) {
+      showToast('error', 'Error', 'Failed to update plan.');
+    }
+  };
+
+  // ===== TOGGLE PLAN ACTIVE =====
+  window.togglePlanActive = function(planId) {
+    const plan = allPlans.find(p => p.id === planId);
+    if (!plan) return;
+    const newStatus = !plan.active;
+    
+    showModal(
+      newStatus ? 'Activate Plan' : 'Deactivate Plan',
+      `${newStatus ? 'Activate' : 'Deactivate'} $${plan.amount} plan? ${newStatus ? 'Users will be able to invest in this plan.' : 'Users will not be able to invest in this plan.'}`,
+      async () => {
+        try {
+          await updateDoc(doc(db, 'plans', planId), { active: newStatus });
+          showToast('success', newStatus ? 'Plan Activated' : 'Plan Deactivated', `$${plan.amount} plan has been ${newStatus ? 'activated' : 'deactivated'}.`);
+          loadPlans();
+        } catch (error) {
+          showToast('error', 'Error', 'Failed to update plan status.');
+        }
+      },
+      newStatus ? 'success' : 'warning'
+    );
+  };
+
+  // ===== DELETE PLAN =====
+  window.deletePlan = function(planId) {
+    const plan = allPlans.find(p => p.id === planId);
+    if (!plan) return;
+    
+    showModal('Delete Plan', `Permanently delete $${plan.amount} plan? This cannot be undone.`, async () => {
+      try {
+        await deleteDoc(doc(db, 'plans', planId));
+        showToast('success', 'Plan Deleted', `$${plan.amount} plan has been deleted.`);
+        loadPlans();
+      } catch (error) {
+        showToast('error', 'Error', 'Failed to delete plan.');
+      }
+    }, 'danger');
+  };
+
+  // ===== RENDER PLANS =====
+  function renderPlans() {
+    const grid = document.getElementById('plansGrid');
+    
+    if (allPlans.length === 0) {
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;grid-column:1/-1;">No plans found. Click "Add New Plan" to create one.</p>';
+      return;
+    }
+    
+    grid.innerHTML = allPlans.map(plan => `
+      <div class="plan-card ${plan.active ? 'active-plan' : 'inactive'}">
+        <span class="plan-badge ${plan.active ? 'badge-active' : 'badge-inactive'}">${plan.active ? 'Active' : 'Inactive'}</span>
+        <div class="plan-amount">$${plan.amount}</div>
+        <div class="plan-roi">$${plan.dailyRoi}/day</div>
+        <div class="plan-duration">${plan.duration} days</div>
+        <div class="plan-return">Return: $${(plan.totalReturn || plan.amount + plan.dailyRoi * plan.duration).toFixed(2)}</div>
+        <div class="plan-actions">
+          <button class="btn-sm btn-edit" onclick="showEditPlanModal('${plan.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+          <button class="btn-sm btn-toggle" onclick="togglePlanActive('${plan.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${plan.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn-sm btn-delete" onclick="deletePlan('${plan.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ===== LOAD PLANS =====
+  async function loadPlans() {
+    try {
+      const snapshot = await getDocs(collection(db, 'plans'));
+      
+      if (snapshot.empty) {
+        // Seed default plans
+        for (const plan of defaultPlans) {
+          await setDoc(doc(db, 'plans', plan.id), plan);
+        }
+        allPlans = defaultPlans;
+      } else {
+        allPlans = [];
+        snapshot.forEach(doc => allPlans.push(doc.data()));
+        allPlans.sort((a, b) => a.amount - b.amount);
+      }
+      
+      renderPlans();
+    } catch (error) {
+      console.error('Error loading plans:', error);
+      // Show default plans
+      allPlans = defaultPlans;
+      renderPlans();
+    }
+  }
+
+  // ===== AUTH CHECK =====
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists() && userDoc.data().isAdmin === true) {
+        loadPlans();
+      } else {
+        window.location.href = 'admin-login.html';
+      }
+    } else {
+      window.location.href = 'admin-login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
