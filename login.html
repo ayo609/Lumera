@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-cream: #faf7f2; --surface: #ffffff;
+      --brown-deep: #3e2723; --brown-mid: #5d4037;
+      --brown-light: #8d6e63; --brown-pale: #d7ccc8; --brown-soft: #f5f0eb;
+      --accent-bronze: #cd7f32; --accent-gold: #daa520;
+      --text-dark: #2c1810; --text-body: #5c4a3d; --text-muted: #9e8b7d;
+      --success-green: #4caf50; --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --shadow-large: 0 20px 60px rgba(62, 39, 35, 0.15);
+      --radius-small: 6px; --radius-medium: 12px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-cream); min-height: 100vh; color: var(--text-dark); display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(circle at 20% 80%, rgba(205,127,50,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(218,165,32,0.05) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+    .login-container { width: 100%; max-width: 420px; background: var(--surface); border-radius: var(--radius-large); box-shadow: var(--shadow-large); padding: 40px 35px; position: relative; z-index: 1; }
+    .login-container::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background: linear-gradient(90deg, var(--accent-bronze), var(--accent-gold)); border-radius: 0 0 3px 3px; }
+    .logo-section { text-align: center; margin-bottom: 35px; }
+    .logo-circle { width: 60px; height: 60px; background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; position: relative; box-shadow: 0 4px 15px rgba(62,39,35,0.3); }
+    .logo-circle::after { content: ''; position: absolute; inset: -4px; border: 2px solid var(--accent-bronze); border-radius: 50%; opacity: 0.5; }
+    .logo-circle svg { width: 28px; height: 28px; color: var(--accent-gold); }
+    .login-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 5px; }
+    .login-subtitle { font-size: 0.85rem; color: var(--text-body); }
+
+    .form-section { margin-top: 10px; }
+    .input-group { margin-bottom: 20px; position: relative; }
+    .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--brown-mid); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-icon { position: absolute; left: 14px; color: var(--text-muted); pointer-events: none; display: flex; z-index: 1; }
+    .input-icon svg { width: 18px; height: 18px; }
+    .form-control { width: 100%; height: 50px; background: var(--bg-cream); border: 1.5px solid var(--border-light); border-radius: var(--radius-small); padding: 0 14px 0 44px; font-family: inherit; font-size: 0.95rem; color: var(--text-dark); outline: none; transition: var(--transition-smooth); }
+    .form-control::placeholder { color: var(--text-muted); font-size: 0.85rem; }
+    .form-control:focus { border-color: var(--accent-bronze); box-shadow: 0 0 0 3px rgba(205,127,50,0.1); background: #fff; }
+    .form-control.error { border-color: var(--error-red); }
+
+    /* Phone Input with Country Dropdown */
+    .phone-input-wrapper { display: flex; gap: 0; }
+    .country-select { width: 100px; height: 50px; background: var(--bg-cream); border: 1.5px solid var(--border-light); border-right: none; border-radius: var(--radius-small) 0 0 var(--radius-small); padding: 0 5px; font-family: inherit; font-size: 0.8rem; color: var(--text-dark); outline: none; cursor: pointer; flex-shrink: 0; }
+    .country-select:focus { border-color: var(--accent-bronze); }
+    .phone-number-input { flex: 1; height: 50px; background: var(--bg-cream); border: 1.5px solid var(--border-light); border-radius: 0 var(--radius-small) var(--radius-small) 0; padding: 0 14px; font-family: inherit; font-size: 0.9rem; color: var(--text-dark); outline: none; transition: var(--transition-smooth); }
+    .phone-number-input:focus { border-color: var(--accent-bronze); box-shadow: 0 0 0 3px rgba(205,127,50,0.1); background: #fff; }
+
+    .toggle-password { position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 6px; display: flex; }
+    .toggle-password:hover { color: var(--accent-bronze); }
+    .toggle-password svg { width: 18px; height: 18px; }
+
+    .form-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .remember-me { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-body); }
+    .checkbox { width: 18px; height: 18px; border: 2px solid var(--border-light); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition-smooth); }
+    .checkbox.checked { background: var(--accent-bronze); border-color: var(--accent-bronze); }
+    .checkbox svg { width: 12px; height: 12px; color: white; opacity: 0; transition: opacity 0.2s; }
+    .checkbox.checked svg { opacity: 1; }
+    .forgot-password { font-size: 0.85rem; color: var(--accent-bronze); text-decoration: none; font-weight: 600; }
+    .forgot-password:hover { color: var(--brown-deep); text-decoration: underline; }
+
+    .submit-button { width: 100%; height: 52px; background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; border: none; border-radius: var(--radius-small); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--transition-smooth); letter-spacing: 0.5px; position: relative; overflow: hidden; }
+    .submit-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition: left 0.5s; }
+    .submit-button:hover::before { left: 100%; }
+    .submit-button:hover { box-shadow: 0 8px 25px rgba(62,39,35,0.3); transform: translateY(-2px); }
+    .submit-button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .button-spinner { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .form-footer { text-align: center; margin-top: 25px; font-size: 0.85rem; color: var(--text-body); }
+    .form-footer a { color: var(--accent-bronze); font-weight: 700; text-decoration: none; margin-left: 4px; }
+    .form-footer a:hover { color: var(--brown-deep); }
+    .divider { display: flex; align-items: center; margin: 25px 0; color: var(--text-muted); font-size: 0.8rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+    .divider span { padding: 0 15px; }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { background: #fff; border-radius: var(--radius-medium); padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-medium); transform: translateX(120%); transition: transform 0.5s; pointer-events: auto; max-width: 380px; }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-right: 4px solid var(--success-green); }
+    .toast.error { border-right: 4px solid var(--error-red); }
+    .toast-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(229,57,53,0.1); color: var(--error-red); }
+    .toast-icon svg { width: 20px; height: 20px; }
+    .toast-content h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.8rem; color: var(--text-body); }
+
+    @media (max-width: 480px) { .login-container { padding: 30px 25px; } .login-title { font-size: 1.8rem; } .logo-circle { width: 50px; height: 50px; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="login-container">
+  <div class="logo-section">
+    <div class="logo-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <h1 class="login-title">Lumera</h1>
+    <p class="login-subtitle">Sign in to your USD investment account</p>
+  </div>
+
+  <div class="form-section" id="phoneForm">
+    <div class="input-group">
+      <label class="input-label">Phone Number</label>
+      <div class="phone-input-wrapper">
+        <select class="country-select" id="countryCode">
+          <option value="+234">🇳🇬 +234</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+971">🇦🇪 +971</option>
+          <option value="+974">🇶🇦 +974</option>
+          <option value="+973">🇧🇭 +973</option>
+          <option value="+966">🇸🇦 +966</option>
+          <option value="+965">🇰🇼 +965</option>
+          <option value="+968">🇴🇲 +968</option>
+          <option value="+20">🇪🇬 +20</option>
+          <option value="+27">🇿🇦 +27</option>
+          <option value="+254">🇰🇪 +254</option>
+          <option value="+233">🇬🇭 +233</option>
+          <option value="+256">🇺🇬 +256</option>
+          <option value="+255">🇹🇿 +255</option>
+          <option value="+260">🇿🇲 +260</option>
+          <option value="+263">🇿🇼 +263</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+33">🇫🇷 +33</option>
+          <option value="+34">🇪🇸 +34</option>
+          <option value="+39">🇮🇹 +39</option>
+          <option value="+31">🇳🇱 +31</option>
+          <option value="+41">🇨🇭 +41</option>
+          <option value="+46">🇸🇪 +46</option>
+          <option value="+47">🇳🇴 +47</option>
+          <option value="+45">🇩🇰 +45</option>
+          <option value="+358">🇫🇮 +358</option>
+          <option value="+353">🇮🇪 +353</option>
+          <option value="+351">🇵🇹 +351</option>
+          <option value="+43">🇦🇹 +43</option>
+          <option value="+32">🇧🇪 +32</option>
+          <option value="+30">🇬🇷 +30</option>
+          <option value="+48">🇵🇱 +48</option>
+          <option value="+420">🇨🇿 +420</option>
+          <option value="+40">🇷🇴 +40</option>
+          <option value="+36">🇭🇺 +36</option>
+          <option value="+380">🇺🇦 +380</option>
+          <option value="+7">🇷🇺 +7</option>
+          <option value="+90">🇹🇷 +90</option>
+          <option value="+972">🇮🇱 +972</option>
+          <option value="+91">🇮🇳 +91</option>
+          <option value="+92">🇵🇰 +92</option>
+          <option value="+880">🇧🇩 +880</option>
+          <option value="+94">🇱🇰 +94</option>
+          <option value="+977">🇳🇵 +977</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+81">🇯🇵 +81</option>
+          <option value="+82">🇰🇷 +82</option>
+          <option value="+65">🇸🇬 +65</option>
+          <option value="+60">🇲🇾 +60</option>
+          <option value="+66">🇹🇭 +66</option>
+          <option value="+84">🇻🇳 +84</option>
+          <option value="+62">🇮🇩 +62</option>
+          <option value="+63">🇵🇭 +63</option>
+          <option value="+61">🇦🇺 +61</option>
+          <option value="+64">🇳🇿 +64</option>
+          <option value="+55">🇧🇷 +55</option>
+          <option value="+54">🇦🇷 +54</option>
+          <option value="+52">🇲🇽 +52</option>
+          <option value="+57">🇨🇴 +57</option>
+          <option value="+51">🇵🇪 +51</option>
+          <option value="+56">🇨🇱 +56</option>
+        </select>
+        <input type="tel" class="phone-number-input" id="phone" placeholder="Phone number" autocomplete="tel" />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <div class="input-wrapper">
+        <span class="input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+        <input type="password" class="form-control" id="password" placeholder="Enter your password" autocomplete="current-password" />
+        <button class="toggle-password" onclick="togglePasswordVisibility()" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </div>
+
+    <div class="form-options">
+      <label class="remember-me" onclick="toggleRememberMe()">
+        <div class="checkbox" id="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>Remember me</span>
+      </label>
+      <a href="forgot-password.html" class="forgot-password">Forgot password?</a>
+    </div>
+
+    <button class="submit-button" id="signInButton" onclick="handleSignIn()">
+      <div class="button-spinner" id="buttonSpinner"></div>
+      <span id="buttonText">Sign In</span>
+    </button>
+  </div>
+
+  <div class="divider"><span>New to Lumera?</span></div>
+  <p class="form-footer">Don't have an account?<a href="index.html">Create Account</a></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  function showToast(type, title, message, duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}</div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, duration);
+  }
+
+  function setLoading(loading) {
+    document.getElementById('signInButton').disabled = loading;
+    document.getElementById('buttonSpinner').style.display = loading ? 'block' : 'none';
+    document.getElementById('buttonText').textContent = loading ? 'Signing In...' : 'Sign In';
+  }
+
+  window.togglePasswordVisibility = function() {
+    const input = document.getElementById('password');
+    const button = input.nextElementSibling;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    button.innerHTML = isPassword ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  };
+
+  window.toggleRememberMe = function() {
+    document.getElementById('checkbox').classList.toggle('checked');
+  };
+
+  function getErrorMessage(code) {
+    const errors = {
+      'auth/invalid-email': 'Invalid phone number or email.',
+      'auth/user-disabled': 'This account has been disabled.',
+      'auth/user-not-found': 'No account found with this phone number.',
+      'auth/wrong-password': 'Incorrect password. Please try again.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/network-request-failed': 'Network error. Please check your connection.',
+      'auth/invalid-credential': 'Invalid credentials. Please check your details.'
+    };
+    return errors[code] || 'Sign in failed. Please try again.';
+  }
+
+  async function findUserByPhone(phone) {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('phone', '==', phone));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data();
+    }
+    return null;
+  }
+
+  window.handleSignIn = async function() {
+    const countryCode = document.getElementById('countryCode').value;
+    const phoneNumber = document.getElementById('phone').value.trim();
+    const fullPhone = countryCode + phoneNumber;
+    const password = document.getElementById('password').value;
+
+    if (!phoneNumber) {
+      showToast('error', 'Missing Field', 'Please enter your phone number.');
+      return;
+    }
+
+    if (!password) {
+      showToast('error', 'Missing Field', 'Please enter your password.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userData = await findUserByPhone(fullPhone);
+      
+      if (!userData) {
+        setLoading(false);
+        showToast('error', 'Account Not Found', 'No account found with this phone number.');
+        return;
+      }
+
+      await signInWithEmailAndPassword(auth, userData.email, password);
+      
+      setLoading(false);
+      showToast('success', 'Welcome Back! 🎉', 'Successfully signed in. Redirecting...');
+      
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1500);
+
+    } catch (error) {
+      setLoading(false);
+      showToast('error', 'Sign In Failed', getErrorMessage(error.code));
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('phone').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSignIn();
+    });
+    document.getElementById('password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSignIn();
+    });
+  });
+</script>
+
+</body>
+</html>
