@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Withdrawal Wallet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-cream: #faf7f2; --surface: #ffffff;
+      --brown-deep: #3e2723; --brown-mid: #5d4037;
+      --brown-light: #8d6e63; --brown-pale: #d7ccc8; --brown-soft: #f5f0eb;
+      --accent-bronze: #cd7f32; --accent-gold: #daa520;
+      --text-dark: #2c1810; --text-body: #5c4a3d; --text-muted: #9e8b7d;
+      --success-green: #4caf50; --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --radius-small: 6px; --radius-medium: 12px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-cream); min-height: 100vh; color: var(--text-dark); position: relative; overflow-x: hidden; }
+
+    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1000; background: var(--brown-deep); border: none; width: 45px; height: 45px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: var(--shadow-medium); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--surface); z-index: 999; transition: left 0.3s; box-shadow: var(--shadow-large); display: flex; flex-direction: column; padding: 80px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 15px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 5px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: var(--text-body); text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--brown-soft); color: var(--brown-deep); }
+    .sidebar-nav a svg { width: 18px; height: 18px; }
+
+    .main-content { padding: 80px 20px 40px; max-width: 550px; margin: 0 auto; }
+    .page-header { text-align: center; margin-bottom: 30px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 5px; }
+    .page-subtitle { font-size: 0.9rem; color: var(--text-body); }
+
+    .balance-display { background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); border-radius: var(--radius-large); padding: 30px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-medium); position: relative; overflow: hidden; }
+    .balance-display::before { content: ''; position: absolute; top: -50%; right: -30%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(205,127,50,0.3) 0%, transparent 70%); border-radius: 50%; }
+    .balance-label { font-size: 0.8rem; color: var(--brown-pale); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 10px; }
+    .balance-amount { font-family: 'DM Mono', monospace; font-size: 2.5rem; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+
+    .withdrawal-card { background: var(--surface); border-radius: var(--radius-large); padding: 30px; box-shadow: var(--shadow-medium); margin-bottom: 20px; }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .card-title svg { width: 18px; height: 18px; color: var(--accent-bronze); }
+
+    .info-banner { background: #fff8f0; border: 1px solid var(--accent-bronze); border-radius: var(--radius-small); padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; font-size: 0.8rem; color: var(--text-body); line-height: 1.5; }
+    .info-banner svg { width: 18px; height: 18px; color: var(--accent-bronze); flex-shrink: 0; margin-top: 2px; }
+
+    .warning-banner { background: #fff3e0; border: 1px solid #ff9800; border-radius: var(--radius-small); padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; font-size: 0.8rem; color: #e65100; line-height: 1.5; }
+    .warning-banner svg { width: 18px; height: 18px; color: #ff9800; flex-shrink: 0; margin-top: 2px; }
+
+    .restriction-banner { background: rgba(229,57,53,0.08); border: 1px solid var(--error-red); border-radius: var(--radius-small); padding: 15px; margin-bottom: 20px; text-align: center; }
+    .restriction-banner h4 { color: var(--error-red); font-size: 0.9rem; font-weight: 700; margin-bottom: 5px; }
+    .restriction-banner p { font-size: 0.8rem; color: var(--text-body); }
+
+    .input-group { margin-bottom: 20px; }
+    .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--brown-mid); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-icon { position: absolute; left: 14px; color: var(--accent-bronze); font-weight: 700; font-size: 1rem; display: flex; }
+    .input-icon svg { width: 16px; height: 16px; }
+    .form-control { width: 100%; height: 48px; background: var(--bg-cream); border: 1.5px solid var(--border-light); border-radius: var(--radius-small); padding: 0 14px 0 40px; font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--text-dark); outline: none; transition: var(--transition-smooth); }
+    .form-control:focus { border-color: var(--accent-bronze); box-shadow: 0 0 0 3px rgba(205,127,50,0.1); background: #fff; }
+    .form-control.error { border-color: var(--error-red); }
+
+    .network-badge { display: inline-block; background: var(--accent-bronze); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 3px; letter-spacing: 0.5px; }
+
+    .quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+    .quick-amount-btn { padding: 8px 15px; border: 1.5px solid var(--border-light); border-radius: 20px; background: var(--bg-cream); cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--text-dark); transition: var(--transition-smooth); }
+    .quick-amount-btn:hover { border-color: var(--accent-bronze); background: #fff8f0; }
+    .quick-amount-btn.selected { background: var(--brown-deep); color: #fff; border-color: var(--brown-deep); }
+
+    .submit-btn { width: 100%; height: 50px; background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; border: none; border-radius: var(--radius-small); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: var(--transition-smooth); letter-spacing: 0.5px; margin-top: 10px; }
+    .submit-btn:hover { background: linear-gradient(135deg, var(--brown-mid), var(--brown-deep)); box-shadow: 0 8px 25px rgba(62,39,35,0.3); transform: translateY(-2px); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .button-spinner { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-message { display: none; background: #f0f9f0; border: 1px solid var(--success-green); border-radius: var(--radius-medium); padding: 20px; text-align: center; margin-top: 15px; }
+    .success-message.show { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .success-icon { width: 50px; height: 50px; margin: 0 auto 10px; color: var(--success-green); }
+    .success-icon svg { width: 100%; height: 100%; }
+    .success-title { font-size: 1.1rem; font-weight: 700; color: var(--success-green); margin-bottom: 5px; }
+    .success-text { font-size: 0.85rem; color: var(--text-body); line-height: 1.5; }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { background: #fff; border-radius: var(--radius-medium); padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-medium); transform: translateX(120%); transition: transform 0.5s; pointer-events: auto; max-width: 350px; }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-right: 4px solid var(--success-green); }
+    .toast.error { border-right: 4px solid var(--error-red); }
+    .toast-icon { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(229,57,53,0.1); color: var(--error-red); }
+    .toast-icon svg { width: 18px; height: 18px; }
+    .toast-content h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.8rem; color: var(--text-body); }
+
+    @media (max-width: 480px) { .withdrawal-card { padding: 20px; } .balance-amount { font-size: 2rem; } }
+  </style>
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Home</a></li>
+    <li><a href="invest.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Invest</a></li>
+    <li><a href="deposit-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Deposit Wallet</a></li>
+    <li><a href="withdrawal-wallet.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="15" x2="22" y2="15"/></svg> Withdrawal Wallet</a></li>
+    <li><a href="referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Referrals</a></li>
+    <li><a href="history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</a></li>
+    <li><a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Profile</a></li>
+    <li><a href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Alerts</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Withdrawal Wallet</h1>
+    <p class="page-subtitle">Withdraw your earnings to your USDT wallet</p>
+  </div>
+
+  <div class="balance-display">
+    <div class="balance-label">Available Balance</div>
+    <div class="balance-amount" id="withdrawalBalance">$0.00</div>
+  </div>
+
+  <div class="restriction-banner" id="restrictionBanner" style="display:none;">
+    <h4 id="restrictionTitle">Withdrawal Restricted</h4>
+    <p id="restrictionMessage">You cannot withdraw at this time.</p>
+  </div>
+
+  <div class="withdrawal-card" id="withdrawalForm">
+    <div class="info-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <div>
+        <strong>Withdrawal Hours:</strong> 8:30 AM - 5:30 PM (Mon-Sat)<br/>
+        <strong>Closed:</strong> Sundays<br/>
+        <strong>Minimum Withdrawal:</strong> $1.00<br/>
+        <strong>Limit:</strong> Once per day<br/>
+        <strong>Charges:</strong> Free (No withdrawal fees)
+      </div>
+    </div>
+
+    <div class="warning-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <strong>Important:</strong> Only BEP20/USDT wallet addresses are accepted. Funds will be deducted immediately from your withdrawal wallet upon submission.
+      </div>
+    </div>
+
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      Withdrawal Amount
+    </div>
+
+    <div class="quick-amounts">
+      <button class="quick-amount-btn" onclick="selectAmount(5)">$5</button>
+      <button class="quick-amount-btn" onclick="selectAmount(10)">$10</button>
+      <button class="quick-amount-btn" onclick="selectAmount(20)">$20</button>
+      <button class="quick-amount-btn" onclick="selectAmount(50)">$50</button>
+      <button class="quick-amount-btn" onclick="selectAmount(100)">$100</button>
+      <button class="quick-amount-btn" onclick="selectAmount(200)">$200</button>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Enter Amount (USD)</label>
+      <div class="input-wrapper">
+        <span class="input-icon">$</span>
+        <input type="number" class="form-control" id="withdrawAmount" placeholder="Minimum $1.00" min="1" step="0.01" />
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top: 25px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Withdrawal Wallet Address
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">
+        <span class="network-badge">BEP20</span> USDT Wallet Address
+      </label>
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </span>
+        <input type="text" class="form-control" id="walletAddress" placeholder="0x..." autocomplete="off" />
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="handleWithdrawal()">
+      <div class="button-spinner" id="spinner"></div>
+      <span id="submitText">Submit Withdrawal Request</span>
+    </button>
+
+    <div class="success-message" id="successMessage">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="success-title">Withdrawal Request Submitted!</div>
+      <div class="success-text">
+        $<span id="deductedAmount">0.00</span> has been deducted from your withdrawal wallet. Your request will be processed during business hours.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let canWithdraw = true;
+  let restrictionReason = '';
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}
+      </div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  function isWithinWithdrawalHours() {
+    const now = new Date();
+    const day = now.getDay();
+    if (day === 0) return false;
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const currentTime = hours * 60 + minutes;
+    const startTime = 8 * 60 + 30;
+    const endTime = 17 * 60 + 30;
+    return currentTime >= startTime && currentTime <= endTime;
+  }
+
+  function isValidBep20Address(address) {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  }
+
+  async function checkWithdrawalEligibility() {
+    if (!currentUser) return;
+    
+    const restrictionBanner = document.getElementById('restrictionBanner');
+    const withdrawalForm = document.getElementById('withdrawalForm');
+    
+    try {
+      const invQuery = query(collection(db, 'investments'), where('uid', '==', currentUser.uid), where('status', '==', 'active'));
+      const invSnapshot = await getDocs(invQuery);
+      
+      if (invSnapshot.empty) {
+        canWithdraw = false;
+        restrictionReason = 'You must have an active investment before you can withdraw.';
+        showRestriction('Active Investment Required', restrictionReason);
+        return;
+      }
+    } catch (e) {
+      canWithdraw = false;
+      restrictionReason = 'You must have an active investment before you can withdraw.';
+      showRestriction('Active Investment Required', restrictionReason);
+      return;
+    }
+    
+    try {
+      const wdQuery = query(collection(db, 'withdrawals'), where('uid', '==', currentUser.uid), where('status', '==', 'pending'));
+      const wdSnapshot = await getDocs(wdQuery);
+      
+      if (!wdSnapshot.empty) {
+        canWithdraw = false;
+        restrictionReason = 'You have a pending withdrawal that has not been approved yet. Please wait for it to be processed.';
+        showRestriction('Pending Withdrawal', restrictionReason);
+        return;
+      }
+    } catch (e) {}
+    
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayTimestamp = today.getTime();
+      
+      const wdQuery = query(collection(db, 'withdrawals'), where('uid', '==', currentUser.uid));
+      const wdSnapshot = await getDocs(wdQuery);
+      
+      for (const wdDoc of wdSnapshot.docs) {
+        const wd = wdDoc.data();
+        const wdTime = wd.createdAt?.toMillis?.() || 0;
+        if (wdTime >= todayTimestamp && wd.status !== 'rejected') {
+          canWithdraw = false;
+          restrictionReason = 'You can only withdraw once per day. Please try again tomorrow.';
+          showRestriction('Daily Limit Reached', restrictionReason);
+          return;
+        }
+      }
+    } catch (e) {}
+    
+    if (!isWithinWithdrawalHours()) {
+      const day = new Date().getDay();
+      if (day === 0) {
+        canWithdraw = false;
+        restrictionReason = 'Withdrawals are not processed on Sundays. Please try again Monday-Saturday.';
+        showRestriction('Closed on Sundays', restrictionReason);
+      } else {
+        canWithdraw = false;
+        restrictionReason = 'Withdrawals are processed between 8:30 AM and 5:30 PM.';
+        showRestriction('Outside Withdrawal Hours', restrictionReason);
+      }
+      return;
+    }
+    
+    canWithdraw = true;
+    restrictionBanner.style.display = 'none';
+    withdrawalForm.style.display = 'block';
+  }
+
+  function showRestriction(title, message) {
+    document.getElementById('restrictionBanner').style.display = 'block';
+    document.getElementById('restrictionTitle').textContent = title;
+    document.getElementById('restrictionMessage').textContent = message;
+    document.getElementById('withdrawalForm').style.display = 'none';
+    showToast('error', title, message);
+  }
+
+  window.selectAmount = function(amount) {
+    document.getElementById('withdrawAmount').value = amount;
+    document.querySelectorAll('.quick-amount-btn').forEach(btn => {
+      btn.classList.remove('selected');
+      if (btn.textContent === `$${amount}`) btn.classList.add('selected');
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('withdrawAmount').addEventListener('input', (e) => {
+      document.querySelectorAll('.quick-amount-btn').forEach(btn => btn.classList.remove('selected'));
+    });
+  });
+
+  async function loadWithdrawalBalance() {
+    if (!currentUser) return;
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        document.getElementById('withdrawalBalance').textContent = `$${(data.withdrawalWallet || 0).toFixed(2)}`;
+      }
+    } catch (error) {
+      console.error('Error loading balance:', error);
+    }
+  }
+
+  window.handleWithdrawal = async function() {
+    if (!canWithdraw) {
+      showToast('error', 'Withdrawal Restricted', restrictionReason);
+      return;
+    }
+
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const walletAddress = document.getElementById('walletAddress').value.trim();
+
+    if (!amount || amount < 1) {
+      showToast('error', 'Invalid Amount', 'Minimum withdrawal is $1.00.');
+      return;
+    }
+
+    if (!walletAddress) {
+      showToast('error', 'Missing Wallet Address', 'Please enter your BEP20/USDT wallet address.');
+      return;
+    }
+
+    if (!isValidBep20Address(walletAddress)) {
+      showToast('error', 'Invalid Wallet Address', 'Please enter a valid BEP20 wallet address (starts with 0x and is 42 characters long).');
+      return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const submitText = document.getElementById('submitText');
+
+    submitBtn.disabled = true;
+    spinner.style.display = 'block';
+    submitText.textContent = 'Processing...';
+
+    try {
+      // ===== GET USER DATA =====
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
+      
+      const userData = userDoc.data();
+      const currentBalance = userData.withdrawalWallet || 0;
+      
+      // ===== CHECK BALANCE =====
+      if (currentBalance < amount) {
+        spinner.style.display = 'none';
+        submitBtn.disabled = false;
+        submitText.textContent = 'Submit Withdrawal Request';
+        showToast('error', 'Insufficient Balance', `You only have $${currentBalance.toFixed(2)} in your withdrawal wallet.`);
+        return;
+      }
+
+      // ===== DEDUCT FROM WITHDRAWAL WALLET IMMEDIATELY =====
+      const newBalance = currentBalance - amount;
+      await updateDoc(userRef, {
+        withdrawalWallet: newBalance,
+        totalWithdrawals: (userData.totalWithdrawals || 0) + amount
+      });
+
+      // ===== CREATE WITHDRAWAL REQUEST =====
+      const withdrawalData = {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        amount: amount,
+        walletAddress: walletAddress,
+        network: 'BEP20',
+        currency: 'USDT',
+        status: 'pending',
+        createdAt: serverTimestamp()
+      };
+
+      const withdrawalId = Date.now().toString();
+      await setDoc(doc(db, 'withdrawals', withdrawalId), withdrawalData);
+
+      // ===== UPDATE DISPLAY =====
+      spinner.style.display = 'none';
+      submitBtn.style.display = 'none';
+      document.getElementById('withdrawalBalance').textContent = `$${newBalance.toFixed(2)}`;
+      document.getElementById('deductedAmount').textContent = amount.toFixed(2);
+      document.getElementById('successMessage').classList.add('show');
+
+      showToast('success', 'Withdrawal Submitted!', `$${amount.toFixed(2)} deducted from your withdrawal wallet.`);
+
+    } catch (error) {
+      console.error('Withdrawal error:', error);
+      spinner.style.display = 'none';
+      submitBtn.disabled = false;
+      submitText.textContent = 'Submit Withdrawal Request';
+      showToast('error', 'Submission Failed', error.message || 'Please try again.');
+    }
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadWithdrawalBalance();
+      checkWithdrawalEligibility();
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
