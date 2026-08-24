@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Withdrawal Reconciliation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-dark: #1a1a2e; --bg-darker: #16213e; --surface: #1a1a40; --surface-light: #242450;
+      --gold: #e94560; --gold-light: #ff6b6b; --text-light: #ffffff; --text-muted: #a0a0b8;
+      --border-light: rgba(255,255,255,0.08); --success-green: #4caf50; --error-red: #ff4444;
+      --warning-orange: #ff9800; --info-blue: #2196f3;
+      --shadow-soft: 0 4px 20px rgba(0,0,0,0.2); --shadow-medium: 0 8px 40px rgba(0,0,0,0.4);
+      --radius-small: 8px; --radius-medium: 14px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-dark); min-height: 100vh; color: var(--text-light); overflow-x: hidden; }
+
+    .top-bar { position: fixed; top: 0; left: 0; right: 0; background: var(--bg-darker); border-bottom: 1px solid var(--border-light); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .top-bar-left { display: flex; align-items: center; gap: 15px; }
+    .hamburger { background: var(--surface-light); border: none; width: 40px; height: 40px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--text-light); border-radius: 2px; }
+    .top-bar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--gold); }
+    .logout-btn { padding: 8px 15px; background: var(--error-red); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; }
+    .logout-btn:hover { background: #cc0000; }
+    .logout-btn svg { width: 14px; height: 14px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 98; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--bg-darker); z-index: 99; transition: left 0.3s; border-right: 1px solid var(--border-light); display: flex; flex-direction: column; padding: 70px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 12px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 4px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 11px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(233,69,96,0.1); color: var(--gold); }
+    .sidebar-nav a svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .main-content { padding: 80px 20px 30px; max-width: 1400px; margin-left: auto; margin-right: auto; }
+    .page-header { margin-bottom: 25px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 700; color: var(--text-light); }
+    .page-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .stat-mini { background: var(--surface); border-radius: var(--radius-medium); padding: 18px; border: 1px solid var(--border-light); text-align: center; }
+    .stat-mini-value { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 700; }
+    .stat-mini-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* Search */
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { flex: 1; height: 45px; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-small); padding: 0 15px; font-family: inherit; font-size: 0.85rem; color: var(--text-light); outline: none; }
+    .search-input:focus { border-color: var(--gold); }
+    .search-btn { padding: 0 20px; height: 45px; background: var(--gold); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 700; }
+
+    /* Table */
+    .table-card { background: var(--surface); border-radius: var(--radius-large); border: 1px solid var(--border-light); overflow: hidden; }
+    .table-header { padding: 18px 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .table-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 700; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th { padding: 12px 15px; text-align: left; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border-light); background: var(--bg-darker); }
+    td { padding: 12px 15px; font-size: 0.8rem; border-bottom: 1px solid var(--border-light); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; margin-right: 8px; vertical-align: middle; }
+    .status-badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; }
+    .status-pending { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .status-approved { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .status-rejected { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .deduct-btn { background: rgba(255,68,68,0.15); color: var(--error-red); border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.65rem; font-weight: 700; }
+    .waived-btn { background: rgba(33,150,243,0.15); color: var(--info-blue); border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.65rem; font-weight: 700; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-large); padding: 25px; max-width: 450px; width: 100%; border: 1px solid var(--border-light); animation: modalIn 0.3s; text-align: center; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-icon { width: 55px; height: 55px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .modal-icon.danger { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .modal-icon.warning { background: rgba(255,152,0,0.15); color: var(--warning-orange); }
+    .modal-icon svg { width: 26px; height: 26px; }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+    .modal-message { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+    .modal-buttons { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 11px; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; }
+    .modal-btn.confirm { background: var(--error-red); color: #fff; }
+    .modal-btn.warning-confirm { background: var(--warning-orange); color: #fff; }
+    .modal-btn.cancel { background: var(--surface-light); color: var(--text-muted); }
+
+    .toast-container { position: fixed; top: 70px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--surface); border-radius: var(--radius-medium); padding: 14px 18px; box-shadow: var(--shadow-medium); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.5s; max-width: 340px; border-left: 4px solid var(--gold); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.15); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(255,68,68,0.15); color: var(--error-red); }
+    .toast-icon svg { width: 16px; height: 16px; }
+    .toast-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.75rem; color: var(--text-muted); }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+
+    @media (max-width: 1024px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .stats-row { grid-template-columns: 1fr; } .search-bar { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon danger" id="modalIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+    <h3 class="modal-title" id="modalTitle">Confirm</h3>
+    <p class="modal-message" id="modalMessage">Are you sure?</p>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="modalConfirmBtn" onclick="confirmModalAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div class="top-bar-title">Lumera Admin</div>
+  </div>
+  <button class="logout-btn" onclick="showLogoutConfirm()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </button>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="admin-dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a></li>
+    <li><a href="admin-users.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</a></li>
+    <li><a href="admin-deposits.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Deposits</a></li>
+    <li><a href="admin-withdrawals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12h14"/></svg>Withdrawals</a></li>
+    <li><a href="admin-reconciliation.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l6-6"/><circle cx="10" cy="14" r="1"/><circle cx="15" cy="9" r="1"/><path d="M12 3l7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-3z"/></svg>Reconciliation</a></li>
+    <li><a href="admin-investments.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Investments</a></li>
+    <li><a href="admin-plans.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>Plans</a></li>
+    <li><a href="admin-referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Referrals</a></li>
+    <li><a href="admin-transactions.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Transactions</a></li>
+    <li><a href="admin-alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alerts</a></li>
+    <li><a href="admin-settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a></li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Withdrawal Reconciliation</h1>
+    <p class="page-subtitle">Track and deduct withdrawals that were not debited from user wallets</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-mini"><div class="stat-mini-value" id="totalWithdrawals" style="color:var(--info-blue);">0</div><div class="stat-mini-label">Total Withdrawals</div></div>
+    <div class="stat-mini"><div class="stat-mini-value" id="totalAmount" style="color:var(--warning-orange);">$0.00</div><div class="stat-mini-label">Total Amount</div></div>
+    <div class="stat-mini"><div class="stat-mini-value" id="deductedCount" style="color:var(--success-green);">0</div><div class="stat-mini-label">Deducted</div></div>
+    <div class="stat-mini"><div class="stat-mini-value" id="pendingDeduction" style="color:var(--error-red);">0</div><div class="stat-mini-label">Pending Deduction</div></div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search by user email..." />
+    <button class="search-btn" onclick="searchWithdrawals()">Search</button>
+    <button class="search-btn" onclick="clearSearch()" style="background:var(--surface-light);">Clear</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">All Withdrawal Requests</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Wallet Deducted?</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawalsTable">
+          <tr><td colspan="6"><div class="empty-state">Loading withdrawals...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let modalAction = null;
+  let allWithdrawals = [];
+  let searchQuery = '';
+  let userCache = {};
+
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}</div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  function showModal(title, message, action, type) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    modalAction = action;
+    const icon = document.getElementById('modalIcon');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    
+    if (type === 'danger') {
+      icon.className = 'modal-icon danger';
+      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      confirmBtn.className = 'modal-btn confirm';
+    } else {
+      icon.className = 'modal-icon warning';
+      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      confirmBtn.className = 'modal-btn warning-confirm';
+    }
+    
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  window.closeModal = function() { document.getElementById('modalOverlay').classList.remove('show'); modalAction = null; };
+  window.confirmModalAction = function() { if (modalAction) modalAction(); closeModal(); };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  window.showLogoutConfirm = function() {
+    showModal('Logout', 'Are you sure you want to log out?', async () => {
+      await signOut(auth);
+      window.location.href = 'admin-login.html';
+    }, 'warning');
+  };
+
+  window.searchWithdrawals = function() {
+    searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+    renderWithdrawals();
+  };
+
+  window.clearSearch = function() {
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+    renderWithdrawals();
+  };
+
+  // ===== DEDUCT USER WALLET =====
+  window.deductUserWallet = function(id, uid, amount, email) {
+    showModal('Deduct User Wallet', `Deduct $${amount.toFixed(2)} from ${email}'s withdrawal wallet? This may result in a negative balance if the user already withdrew the funds.`, async () => {
+      try {
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentBalance = userData.withdrawalWallet || 0;
+          const newBalance = currentBalance - amount;
+          
+          await updateDoc(userRef, {
+            withdrawalWallet: newBalance,
+            totalWithdrawals: (userData.totalWithdrawals || 0) + amount
+          });
+          
+          // Mark withdrawal as deducted
+          await updateDoc(doc(db, 'withdrawals', id), {
+            walletDeducted: true
+          });
+          
+          showToast('success', 'Wallet Deducted', `$${amount.toFixed(2)} deducted from ${email}'s withdrawal wallet. New balance: $${newBalance.toFixed(2)}`);
+          loadWithdrawals();
+        }
+      } catch (error) {
+        console.error('Deduction error:', error);
+        showToast('error', 'Error', 'Failed to deduct user wallet.');
+      }
+    }, 'danger');
+  };
+
+  // ===== WAIVE DEDUCTION =====
+  window.waiveDeduction = function(id) {
+    showModal('Waive Deduction', 'Mark this withdrawal as already deducted/waived? No wallet deduction will be made.', async () => {
+      try {
+        await updateDoc(doc(db, 'withdrawals', id), {
+          walletDeducted: true,
+          waived: true
+        });
+        showToast('success', 'Waived', 'Withdrawal marked as waived. No deduction made.');
+        loadWithdrawals();
+      } catch (error) {
+        showToast('error', 'Error', 'Failed to waive deduction.');
+      }
+    }, 'warning');
+  };
+
+  function renderWithdrawals() {
+    const tbody = document.getElementById('withdrawalsTable');
+    
+    let filtered = allWithdrawals;
+    if (searchQuery) {
+      filtered = allWithdrawals.filter(w => 
+        (w.userEmail && w.userEmail.toLowerCase().includes(searchQuery))
+      );
+    }
+    
+    const totalAmount = allWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+    const deductedCount = allWithdrawals.filter(w => w.walletDeducted).length;
+    const pendingCount = allWithdrawals.filter(w => !w.walletDeducted && w.status !== 'rejected').length;
+    
+    document.getElementById('totalWithdrawals').textContent = allWithdrawals.length;
+    document.getElementById('totalAmount').textContent = `$${totalAmount.toFixed(2)}`;
+    document.getElementById('deductedCount').textContent = deductedCount;
+    document.getElementById('pendingDeduction').textContent = pendingCount;
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No withdrawals found.</div></td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = filtered.map(w => `
+      <tr>
+        <td><span class="user-avatar">${(w.userEmail || 'U').charAt(0).toUpperCase()}</span>${w.userEmail || 'N/A'}</td>
+        <td style="font-family:'DM Mono',monospace;">$${w.amount.toFixed(2)}</td>
+        <td><span class="status-badge status-${w.status}">${w.status}</span></td>
+        <td>
+          ${w.walletDeducted 
+            ? '<span class="status-badge status-approved">✓ Deducted</span>' 
+            : (w.status === 'rejected' 
+              ? '<span class="status-badge status-rejected">Rejected</span>' 
+              : '<span class="status-badge status-pending">⚠ Not Deducted</span>')}
+        </td>
+        <td>${w.date || 'N/A'}</td>
+        <td>
+          ${!w.walletDeducted && w.status !== 'rejected' ? `
+            <button class="deduct-btn" onclick="deductUserWallet('${w.id}', '${w.uid}', ${w.amount}, '${w.userEmail}')">💰 Deduct Now</button>
+            <button class="waived-btn" onclick="waiveDeduction('${w.id}')" style="margin-left:5px;">✓ Waive</button>
+          ` : 'No action needed'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadWithdrawals() {
+    const tbody = document.getElementById('withdrawalsTable');
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Loading withdrawals...</div></td></tr>';
+    
+    try {
+      // Load users for emails
+      try {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        usersSnapshot.forEach(doc => {
+          const u = doc.data();
+          userCache[u.uid] = u.email || u.uid;
+        });
+      } catch (e) {}
+      
+      // Load withdrawals
+      const withdrawalsSnapshot = await getDocs(collection(db, 'withdrawals'));
+      allWithdrawals = [];
+      
+      for (const docSnap of withdrawalsSnapshot.docs) {
+        const w = docSnap.data();
+        allWithdrawals.push({
+          id: docSnap.id,
+          ...w,
+          userEmail: userCache[w.uid] || w.uid || w.email || 'N/A',
+          date: w.createdAt ? new Date(w.createdAt.toMillis ? w.createdAt.toMillis() : w.createdAt).toLocaleString() : 'N/A',
+          walletDeducted: w.walletDeducted || false,
+          timestamp: w.createdAt?.toMillis?.() || 0
+        });
+      }
+      
+      allWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
+      renderWithdrawals();
+      
+    } catch (error) {
+      console.error('Error loading withdrawals:', error);
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Error loading withdrawals.</div></td></tr>';
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists() && userDoc.data().isAdmin === true) {
+          loadWithdrawals();
+        } else {
+          window.location.href = 'admin-login.html';
+        }
+      } catch (error) {
+        window.location.href = 'admin-login.html';
+      }
+    } else {
+      window.location.href = 'admin-login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
