@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Lumera – Invest</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-cream: #faf7f2; --surface: #ffffff;
+      --brown-deep: #3e2723; --brown-mid: #5d4037;
+      --brown-light: #8d6e63; --brown-pale: #d7ccc8; --brown-soft: #f5f0eb;
+      --accent-bronze: #cd7f32; --accent-gold: #daa520;
+      --text-dark: #2c1810; --text-body: #5c4a3d; --text-muted: #9e8b7d;
+      --success-green: #4caf50; --error-red: #e53935;
+      --border-light: #e8e0d8;
+      --shadow-soft: 0 4px 20px rgba(62, 39, 35, 0.06);
+      --shadow-medium: 0 8px 40px rgba(62, 39, 35, 0.1);
+      --radius-small: 6px; --radius-medium: 12px; --radius-large: 20px;
+      --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg-cream); min-height: 100vh; color: var(--text-dark); position: relative; overflow-x: hidden; }
+
+    .hamburger { position: fixed; top: 20px; left: 20px; z-index: 1000; background: var(--brown-deep); border: none; width: 45px; height: 45px; border-radius: var(--radius-small); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: var(--shadow-medium); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
+    .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--surface); z-index: 999; transition: left 0.3s; box-shadow: var(--shadow-large); display: flex; flex-direction: column; padding: 80px 0 20px; overflow-y: auto; }
+    .sidebar.show { left: 0; }
+    .sidebar-nav { list-style: none; padding: 0 15px; flex: 1; }
+    .sidebar-nav li { margin-bottom: 5px; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: var(--text-body); text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-small); transition: var(--transition-smooth); }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--brown-soft); color: var(--brown-deep); }
+    .sidebar-nav a svg { width: 18px; height: 18px; }
+    .sidebar-logout { margin: 20px 15px 0; padding: 12px 15px; background: var(--error-red); color: #fff; border: none; border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .sidebar-logout svg { width: 18px; height: 18px; }
+
+    .main-content { padding: 80px 20px 40px; max-width: 900px; margin: 0 auto; }
+    .page-header { text-align: center; margin-bottom: 25px; }
+    .page-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 5px; }
+    .page-subtitle { font-size: 0.9rem; color: var(--text-body); }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--surface); border-radius: var(--radius-medium); padding: 5px; box-shadow: var(--shadow-soft); }
+    .tab-btn { flex: 1; padding: 12px; border: none; border-radius: var(--radius-small); background: transparent; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); transition: var(--transition-smooth); }
+    .tab-btn.active { background: var(--brown-deep); color: #fff; }
+
+    .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+    .plan-card { background: var(--surface); border-radius: var(--radius-medium); padding: 25px 20px; text-align: center; box-shadow: var(--shadow-soft); transition: var(--transition-smooth); cursor: pointer; border: 1.5px solid transparent; position: relative; overflow: hidden; }
+    .plan-card:hover { box-shadow: var(--shadow-medium); transform: translateY(-3px); border-color: var(--accent-bronze); }
+    .plan-badge { position: absolute; top: 15px; right: 15px; background: linear-gradient(135deg, var(--accent-bronze), var(--accent-gold)); color: #fff; font-size: 0.6rem; font-weight: 700; padding: 3px 8px; border-radius: 3px; }
+    .plan-amount { font-family: 'DM Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 5px; }
+    .plan-roi { font-size: 0.8rem; color: var(--accent-bronze); font-weight: 700; margin-bottom: 3px; }
+    .plan-duration { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 12px; }
+    .plan-total { font-size: 0.75rem; color: var(--success-green); font-weight: 700; background: #f0f9f0; border-radius: 20px; padding: 4px 10px; display: inline-block; }
+
+    .investments-list { display: none; }
+    .investments-list.show { display: block; }
+    .investment-card { background: var(--surface); border-radius: var(--radius-medium); padding: 20px; box-shadow: var(--shadow-soft); margin-bottom: 15px; border-left: 3px solid var(--accent-bronze); }
+    .investment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .investment-amount { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--brown-deep); }
+    .investment-status { font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-active { background: #f0f9f0; color: var(--success-green); }
+    .status-completed { background: #f0f0f0; color: var(--text-muted); }
+    .countdown-timer { font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--accent-bronze); text-align: center; margin-bottom: 12px; }
+    .progress-bar { width: 100%; height: 5px; background: var(--border-light); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-bronze), var(--accent-gold)); border-radius: 3px; transition: width 1s linear; }
+    .investment-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1500; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-large); padding: 25px; max-width: 380px; width: 100%; box-shadow: var(--shadow-large); animation: modalIn 0.3s; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--brown-deep); margin-bottom: 15px; text-align: center; }
+    .modal-details { background: var(--bg-cream); border-radius: var(--radius-small); padding: 12px; margin-bottom: 15px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 0.8rem; border-bottom: 1px solid var(--border-light); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text-muted); }
+    .detail-value { font-weight: 700; color: var(--text-dark); }
+    .confirm-btn { width: 100%; height: 48px; background: linear-gradient(135deg, var(--brown-deep), var(--brown-mid)); color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 700; border: none; border-radius: var(--radius-small); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .cancel-btn { width: 100%; padding: 10px; background: transparent; border: 1px solid var(--border-light); border-radius: var(--radius-small); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 8px; }
+    .button-spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: #fff; border-radius: var(--radius-medium); padding: 14px 18px; box-shadow: var(--shadow-large); display: flex; align-items: center; gap: 12px; transform: translateX(120%); transition: transform 0.5s; max-width: 340px; border-left: 4px solid var(--accent-bronze); }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: var(--success-green); }
+    .toast.error { border-left-color: var(--error-red); }
+    .toast-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.1); color: var(--success-green); }
+    .toast.error .toast-icon { background: rgba(229,57,53,0.1); color: var(--error-red); }
+    .toast-icon svg { width: 16px; height: 16px; }
+    .toast-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+    .toast-content p { font-size: 0.75rem; color: var(--text-body); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 50px; height: 50px; margin-bottom: 15px; color: var(--brown-pale); }
+
+    @media (max-width: 768px) { .plans-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .plans-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Home</a></li>
+    <li><a href="invest.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Invest</a></li>
+    <li><a href="deposit-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> Deposit Wallet</a></li>
+    <li><a href="withdrawal-wallet.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="15" x2="22" y2="15"/></svg> Withdrawal Wallet</a></li>
+    <li><a href="referrals.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Referrals</a></li>
+    <li><a href="history.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</a></li>
+    <li><a href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Profile</a></li>
+    <li><a href="alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg> Alerts</a></li>
+  </ul>
+  <button class="sidebar-logout" onclick="logout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Sign Out
+  </button>
+</div>
+
+<div class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Investment Plans</h1>
+    <p class="page-subtitle">Choose a plan and start earning daily returns</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="plansTab" onclick="switchTab('plans')">Available Plans</button>
+    <button class="tab-btn" id="investmentsTab" onclick="switchTab('investments')">My Ventures</button>
+  </div>
+
+  <div class="plans-grid" id="plansGrid"></div>
+  <div class="investments-list" id="investmentsList"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 class="modal-title">Confirm Purchase</h3>
+    <div class="modal-details" id="modalDetails"></div>
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmPurchase()">
+      <div class="button-spinner" id="spinner"></div>
+      <span id="confirmText">Confirm Purchase</span>
+    </button>
+    <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNxT46nSRdtD2cKmlqZ8ihx4Tk3QZ7Iuk",
+    authDomain: "lumera-81730.firebaseapp.com",
+    projectId: "lumera-81730",
+    storageBucket: "lumera-81730.firebasestorage.app",
+    messagingSenderId: "175198576882",
+    appId: "1:175198576882:web:00367daecf932b821eb06b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let selectedPlan = null;
+  let investmentsData = [];
+  let countdownIntervals = [];
+
+  const plans = [
+    { amount: 10, dailyRoi: 1, duration: 20, totalReturn: 20 },
+    { amount: 20, dailyRoi: 2, duration: 20, totalReturn: 40 },
+    { amount: 50, dailyRoi: 5, duration: 20, totalReturn: 100 },
+    { amount: 100, dailyRoi: 10, duration: 20, totalReturn: 200 },
+    { amount: 200, dailyRoi: 20, duration: 20, totalReturn: 400 },
+    { amount: 300, dailyRoi: 30, duration: 20, totalReturn: 600 },
+    { amount: 500, dailyRoi: 50, duration: 20, totalReturn: 1000 },
+    { amount: 1000, dailyRoi: 100, duration: 20, totalReturn: 2000 },
+    { amount: 2000, dailyRoi: 200, duration: 20, totalReturn: 4000 }
+  ];
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  };
+
+  function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'}
+      </div>
+      <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 4000);
+  }
+
+  window.switchTab = function(tab) {
+    if (tab === 'plans') {
+      document.getElementById('plansTab').classList.add('active');
+      document.getElementById('investmentsTab').classList.remove('active');
+      document.getElementById('plansGrid').style.display = 'grid';
+      document.getElementById('investmentsList').classList.remove('show');
+    } else {
+      document.getElementById('investmentsTab').classList.add('active');
+      document.getElementById('plansTab').classList.remove('active');
+      document.getElementById('plansGrid').style.display = 'none';
+      document.getElementById('investmentsList').classList.add('show');
+      loadMyInvestments();
+    }
+  };
+
+  function loadPlans() {
+    const grid = document.getElementById('plansGrid');
+    grid.innerHTML = '';
+    plans.forEach(plan => {
+      const card = document.createElement('div');
+      card.className = 'plan-card';
+      card.innerHTML = `
+        <div class="plan-badge">20 DAYS</div>
+        <div class="plan-amount">$${plan.amount}</div>
+        <div class="plan-roi">$${plan.dailyRoi}/day</div>
+        <div class="plan-duration">${plan.duration} days contract</div>
+        <div class="plan-total">100% Return: $${plan.totalReturn}</div>
+      `;
+      card.onclick = () => openPurchaseModal(plan);
+      grid.appendChild(card);
+    });
+  }
+
+  window.openPurchaseModal = function(plan) {
+    selectedPlan = plan;
+    document.getElementById('modalDetails').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-value">$${plan.amount}</span></div>
+      <div class="detail-row"><span class="detail-label">Daily ROI</span><span class="detail-value">$${plan.dailyRoi}/day</span></div>
+      <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${plan.duration} days</span></div>
+      <div class="detail-row"><span class="detail-label">Total Return</span><span class="detail-value" style="color:var(--success-green)">$${plan.totalReturn}</span></div>
+    `;
+    document.getElementById('modalOverlay').classList.add('show');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    selectedPlan = null;
+  };
+
+  window.confirmPurchase = async function() {
+    if (!selectedPlan || !currentUser) return;
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    const spinner = document.getElementById('spinner');
+    const confirmText = document.getElementById('confirmText');
+    confirmBtn.disabled = true;
+    spinner.style.display = 'block';
+    confirmText.textContent = 'Processing...';
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) throw new Error('User not found');
+
+      const userData = userDoc.data();
+      const depositWallet = userData.depositWallet || 0;
+
+      if (depositWallet < selectedPlan.amount) {
+        throw new Error('Insufficient deposit wallet balance');
+      }
+
+      const newDepositWallet = depositWallet - selectedPlan.amount;
+      const investmentId = Date.now().toString();
+
+      const investmentData = {
+        id: investmentId,
+        uid: currentUser.uid,
+        planAmount: selectedPlan.amount,
+        dailyRoi: selectedPlan.dailyRoi,
+        duration: selectedPlan.duration,
+        totalReturn: selectedPlan.totalReturn,
+        startTime: Date.now(),
+        lastRoiTime: Date.now(),
+        roiCount: 0,
+        totalRoiEarned: 0,
+        status: 'active',
+        createdAt: serverTimestamp()
+      };
+
+      await updateDoc(userRef, {
+        depositWallet: newDepositWallet,
+        activeInvestments: (userData.activeInvestments || 0) + selectedPlan.amount
+      });
+
+      await setDoc(doc(db, 'investments', investmentId), investmentData);
+
+      if (userData.referredBy) {
+        await handleReferralBonus(userData.referredBy, currentUser.uid, selectedPlan.amount);
+      }
+
+      spinner.style.display = 'none';
+      confirmBtn.disabled = false;
+      confirmText.textContent = 'Confirm Purchase';
+      closeModal();
+      showToast('success', 'Investment Purchased!', `$${selectedPlan.amount} plan activated successfully.`);
+
+    } catch (error) {
+      spinner.style.display = 'none';
+      confirmBtn.disabled = false;
+      confirmText.textContent = 'Confirm Purchase';
+      showToast('error', 'Purchase Failed', error.message || 'Please try again.');
+    }
+  };
+
+  async function handleReferralBonus(referrerUid, newUserUid, amount) {
+    try {
+      const level1Ref = doc(db, 'users', referrerUid);
+      const level1Doc = await getDoc(level1Ref);
+      if (!level1Doc.exists()) return;
+      
+      const level1Data = level1Doc.data();
+      const downlineRef = doc(db, 'users', newUserUid);
+      const downlineDoc = await getDoc(downlineRef);
+      if (!downlineDoc.exists()) return;
+      
+      const downlineData = downlineDoc.data();
+
+      if (!downlineData.hasPurchased) {
+        const level1Bonus = amount * 0.10;
+        
+        await updateDoc(level1Ref, {
+          withdrawalWallet: (level1Data.withdrawalWallet || 0) + level1Bonus,
+          referralEarnings: (level1Data.referralEarnings || 0) + level1Bonus,
+          'referralLevels.level1': (level1Data.referralLevels?.level1 || 0) + 1
+        });
+        
+        await updateDoc(downlineRef, { hasPurchased: true });
+        
+        await setDoc(doc(db, 'referralBonuses', Date.now().toString()), {
+          referrerUid: referrerUid,
+          downlineUid: newUserUid,
+          amount: level1Bonus,
+          level: 1,
+          percentage: 10,
+          createdAt: serverTimestamp()
+        });
+        
+        showToast('success', 'Level 1 Referral Bonus!', `$${level1Bonus.toFixed(2)} credited to your direct upliner.`);
+      }
+
+      if (level1Data.referredBy) {
+        const level2Ref = doc(db, 'users', level1Data.referredBy);
+        const level2Doc = await getDoc(level2Ref);
+        
+        if (level2Doc.exists()) {
+          const level2Data = level2Doc.data();
+          const level2Bonus = amount * 0.05;
+          
+          await updateDoc(level2Ref, {
+            withdrawalWallet: (level2Data.withdrawalWallet || 0) + level2Bonus,
+            referralEarnings: (level2Data.referralEarnings || 0) + level2Bonus,
+            'referralLevels.level2': (level2Data.referralLevels?.level2 || 0) + 1
+          });
+          
+          await setDoc(doc(db, 'referralBonuses', Date.now().toString()), {
+            referrerUid: level1Data.referredBy,
+            downlineUid: newUserUid,
+            amount: level2Bonus,
+            level: 2,
+            percentage: 5,
+            createdAt: serverTimestamp()
+          });
+          
+          showToast('success', 'Level 2 Referral Bonus!', `$${level2Bonus.toFixed(2)} credited to level 2 upliner.`);
+
+          if (level2Data.referredBy) {
+            const level3Ref = doc(db, 'users', level2Data.referredBy);
+            const level3Doc = await getDoc(level3Ref);
+            
+            if (level3Doc.exists()) {
+              const level3Data = level3Doc.data();
+              const level3Bonus = amount * 0.02;
+              
+              await updateDoc(level3Ref, {
+                withdrawalWallet: (level3Data.withdrawalWallet || 0) + level3Bonus,
+                referralEarnings: (level3Data.referralEarnings || 0) + level3Bonus,
+                'referralLevels.level3': (level3Data.referralLevels?.level3 || 0) + 1
+              });
+              
+              await setDoc(doc(db, 'referralBonuses', Date.now().toString()), {
+                referrerUid: level2Data.referredBy,
+                downlineUid: newUserUid,
+                amount: level3Bonus,
+                level: 3,
+                percentage: 2,
+                createdAt: serverTimestamp()
+              });
+              
+              showToast('success', 'Level 3 Referral Bonus!', `$${level3Bonus.toFixed(2)} credited to level 3 upliner.`);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Referral bonus error:', error);
+    }
+  }
+
+  async function loadMyInvestments() {
+    if (!currentUser) return;
+    const list = document.getElementById('investmentsList');
+    list.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">Loading your ventures...</p>';
+
+    try {
+      const investmentsRef = collection(db, 'investments');
+      const q = query(investmentsRef, where('uid', '==', currentUser.uid));
+      const snapshot = await getDocs(q);
+      
+      investmentsData = [];
+      snapshot.forEach(doc => investmentsData.push(doc.data()));
+      
+      investmentsData.sort((a, b) => b.startTime - a.startTime);
+      
+      if (investmentsData.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <p>No active ventures yet. Start investing today!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      renderInvestments();
+      startCountdownTimers();
+    } catch (error) {
+      console.error('Error loading investments:', error);
+      list.innerHTML = '<p style="text-align:center;color:var(--error-red);padding:20px;">Error loading investments. Please refresh.</p>';
+    }
+  }
+
+  function renderInvestments() {
+    const list = document.getElementById('investmentsList');
+    list.innerHTML = investmentsData.map(inv => {
+      const isActive = inv.status === 'active';
+      return `
+        <div class="investment-card">
+          <div class="investment-header">
+            <div class="investment-amount">$${inv.planAmount}</div>
+            <span class="investment-status ${isActive ? 'status-active' : 'status-completed'}">${isActive ? 'Active' : 'Completed'}</span>
+          </div>
+          <div class="countdown-timer" id="timer-${inv.id}">--:--:--</div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-${inv.id}" style="width:0%"></div></div>
+          <div class="investment-info">
+            <span>Daily ROI: $${inv.dailyRoi}</span>
+            <span>Earned: $${(inv.totalRoiEarned || 0).toFixed(2)}</span>
+            <span>Days: ${inv.roiCount || 0}/${inv.duration}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function startCountdownTimers() {
+    countdownIntervals.forEach(interval => clearInterval(interval));
+    countdownIntervals = [];
+
+    investmentsData.forEach(inv => {
+      if (inv.status !== 'active') return;
+      
+      const updateTimer = () => {
+        const now = Date.now();
+        const lastRoi = inv.lastRoiTime || inv.startTime;
+        const nextRoi = lastRoi + 24 * 60 * 60 * 1000;
+        const timeLeft = nextRoi - now;
+
+        const timerEl = document.getElementById(`timer-${inv.id}`);
+        const progressEl = document.getElementById(`progress-${inv.id}`);
+        
+        if (!timerEl || !progressEl) return;
+
+        if (timeLeft <= 0) {
+          timerEl.textContent = 'ROI Ready!';
+          progressEl.style.width = '100%';
+          return;
+        }
+
+        const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+        const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+        timerEl.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+
+        const totalDuration = 24 * 60 * 60 * 1000;
+        const elapsed = totalDuration - timeLeft;
+        const progress = Math.min(100, (elapsed / totalDuration) * 100);
+        progressEl.style.width = `${progress}%`;
+      };
+
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+      countdownIntervals.push(interval);
+    });
+  }
+
+  window.logout = function() {
+    if (confirm('Sign out?')) {
+      signOut(auth).then(() => window.location.href = 'login.html');
+    }
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadPlans();
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+</script>
+
+</body>
+</html>
